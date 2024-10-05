@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "619666010560",
+    "project_id": "proyecto-grado-b9dad",
+    "storage_bucket": "proyecto-grado-b9dad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:619666010560:android:e0135ee4cff11527191825",
+        "android_client_info": {
+          "package_name": "com.example.tutorias_estudiantes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfs1YqQo9nkV2zol9HOVUHSiRYIgKZNz4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
