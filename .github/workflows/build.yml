@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # Actualizado a la versión más reciente
 
     - name: Set up JDK
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v3  # Actualizado a la versión más reciente
       with:
         java-version: '17'  # Cambia la versión según lo que uses
         distribution: 'temurin'  # Puedes usar 'adopt' o 'temurin'
@@ -23,7 +23,7 @@ jobs:
       run: ./gradlew assembleRelease  # Comando para construir el APK
 
     - name: Upload APK
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3  # Actualizado a la versión más reciente
       with:
         name: app-release.apk
         path: app/build/outputs/apk/release/app-release.apk  # Ajusta esta ruta si es necesario
