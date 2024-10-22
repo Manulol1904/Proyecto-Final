@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tutorias_estudiantes/pages/account_page.dart';
 import 'package:tutorias_estudiantes/pages/changepass_page.dart';
-import 'package:tutorias_estudiantes/pages/home_page.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String userRole;

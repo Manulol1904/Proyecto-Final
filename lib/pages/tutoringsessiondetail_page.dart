@@ -20,7 +20,10 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
         await FirebaseFirestore.instance
             .collection('TutoringSessions')
             .doc(widget.session.tutoringId)
-            .update({'rating': _rating});
+            .update({
+          'rating': _rating,
+          'isRated': true, // Update isRated to true after submitting rating
+        });
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Calificación enviada: $_rating')),
@@ -32,6 +35,13 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
         );
       }
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize _rating with the current session rating
+    _rating = widget.session.rating;
   }
 
   @override
@@ -99,41 +109,52 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              // Slider
-              Slider(
-                value: _rating ?? 1,
-                min: 1,
-                max: 5,
-                divisions: 4,
-                activeColor: Theme.of(context).primaryColor,
-                label: _rating?.toString(),
-                onChanged: (value) {
-                  setState(() {
-                    _rating = value;
-                  });
-                },
-              ),
+              // Check if the session is already rated
+              if (widget.session.isRated) ...[
+                // Show the existing rating
+                Text(
+                  'Calificación actual: ${widget.session.rating}',
+                  style: TextStyle(fontSize: 18, color: Colors.green),
+                ),
+              ] else ...[
+                // Slider
+                Slider(
+                  value: _rating ?? 1,
+                  min: 1,
+                  max: 5,
+                  divisions: 4,
+                  activeColor: Theme.of(context).primaryColor,
+                  label: _rating?.toString(),
+                  onChanged: (value) {
+                    setState(() {
+                      _rating = value;
+                    });
+                  },
+                ),
+              ],
               const SizedBox(height: 30),
               // Calificar button
-              Center(
-                child: ElevatedButton.icon(
-                  onPressed: _submitRating,
-                  icon: Icon(Icons.rate_review, color: Theme.of(context).colorScheme.inversePrimary ),
-                  label: const Text(
-                    'Calificar',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+              if (!widget.session.isRated) ...[
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _submitRating,
+                    icon: Icon(Icons.rate_review, color: Theme.of(context).colorScheme.inversePrimary),
+                    label: const Text(
+                      'Calificar',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
               const SizedBox(height: 50), // Spacer at the bottom for larger screens
             ],
           ),

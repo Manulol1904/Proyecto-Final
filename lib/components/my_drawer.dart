@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tutorias_estudiantes/pages/Alltutories_page.dart';
 import 'package:tutorias_estudiantes/pages/chatrooms_page.dart';
 import 'package:tutorias_estudiantes/pages/tutoringsession_page.dart';
 import 'package:tutorias_estudiantes/pages/userprofle_page.dart';
@@ -105,25 +106,27 @@ class _MyDrawerState extends State<MyDrawer> {
                 ),
               ),
 
-              // Chat option
-              Padding(
-                padding: const EdgeInsets.only(left: 25.0),
-                child: ListTile(
-                  title: const Text("C H A T S"),
-                  leading: const Icon(Icons.chat),
-                  onTap: () {
-                    // pop the drawer
-                    Navigator.pop(context);
-                    
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatRoomsPage(),
-                      ),
-                    );
-                  },
+              // Chat option (only for non-admin users)
+              if (userRole != 'Admin') ...[
+                Padding(
+                  padding: const EdgeInsets.only(left: 25.0),
+                  child: ListTile(
+                    title: const Text("C H A T S"),
+                    leading: const Icon(Icons.chat),
+                    onTap: () {
+                      // pop the drawer
+                      Navigator.pop(context);
+                      
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatRoomsPage(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
+              ],
 
               // Settings option
               Padding(
@@ -186,6 +189,25 @@ class _MyDrawerState extends State<MyDrawer> {
                             tutorUid: userUid, // Pass the tutor UID
                             userRole: userRole!, // Pass the user role
                           ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ] else if (userRole == 'Admin') ...[
+                Padding(
+                  padding: const EdgeInsets.only(left: 25.0),
+                  child: ListTile(
+                    title: const Text("T U T O R I A S"),
+                    leading: const Icon(Icons.admin_panel_settings),
+                    onTap: () {
+                      // Action for Admin
+                      Navigator.pop(context);
+                      
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AllTutoringSessionsPage(), // Asegúrate de tener la página para mostrar todas las tutorías
                         ),
                       );
                     },

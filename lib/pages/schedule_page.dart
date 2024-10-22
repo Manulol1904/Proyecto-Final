@@ -35,7 +35,6 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
 
   Future<void> _loadUserData() async {
     try {
-      // Obtener los datos del estudiante y tutor desde Firestore
       DocumentSnapshot studentDoc = await FirebaseFirestore.instance.collection('Users').doc(widget.solicitanteUid).get();
       DocumentSnapshot tutorDoc = await FirebaseFirestore.instance.collection('Users').doc(widget.receptorUid).get();
 
@@ -59,12 +58,10 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
 
   Future<void> _scheduleTutoringSession() async {
     try {
-      // Create a reference to the new document
       DocumentReference newSessionRef = FirebaseFirestore.instance.collection('TutoringSessions').doc();
 
-      // Crear la tutoría en Firestore con los datos de la sesión, incluyendo tutoringId
       await newSessionRef.set({
-        'tutoringId': newSessionRef.id, // Generate a unique ID for the tutoring session
+        'tutoringId': newSessionRef.id,
         'studentName': _studentName,
         'studentUid': widget.solicitanteUid,
         'studentCareer': _studentCareer,
@@ -91,6 +88,8 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agendar Tutoría'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.grey,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -99,58 +98,112 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Estudiante: $_studentName'),
-                  Text('Carrera: $_studentCareer'),
-                  const SizedBox(height: 20),
-                  Text('Tutor: $_tutorName'),
-                  const SizedBox(height: 20),
-                  const Text('Fecha de Tutoría'),
-                  TextField(
-                    controller: _dateController,
-                    decoration: const InputDecoration(
-                      hintText: 'Seleccione la fecha',
+                  Center( // Centrar la tarjeta
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      margin: const EdgeInsets.symmetric(horizontal: 16.0), // Margen lateral
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildInfoText('Estudiante:', _studentName),
+                            _buildInfoText('Carrera:', _studentCareer),
+                            const SizedBox(height: 20),
+                            _buildInfoText('Tutor:', _tutorName),
+                          ],
+                        ),
+                      ),
                     ),
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          _dateController.text = "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
-                        });
-                      }
-                    },
                   ),
                   const SizedBox(height: 20),
-                  const Text('Hora de Tutoría'),
-                  TextField(
-                    controller: _timeController,
-                    decoration: const InputDecoration(
-                      hintText: 'Seleccione la hora',
-                    ),
-                    onTap: () async {
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (pickedTime != null) {
-                        setState(() {
-                          _timeController.text = pickedTime.format(context);
-                        });
-                      }
-                    },
-                  ),
+                  _buildDateTimeInput('Fecha de Tutoría', _dateController, true),
                   const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _scheduleTutoringSession,
-                    child: const Text('Agendar Tutoría'),
+                  _buildDateTimeInput('Hora de Tutoría', _timeController, false),
+                  const SizedBox(height: 30),
+                  Center( // Centrando el botón
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+                        backgroundColor: Theme.of(context).primaryColor, // Color de fondo del botón
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+                        elevation: 0, // Sin sombra para un look más limpio
+                      ),
+                      onPressed: _scheduleTutoringSession,
+                      child: const Text(
+                        'Agendar Tutoría',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildInfoText(String title, String info) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          info,
+          style: const TextStyle(fontSize: 16),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateTimeInput(String label, TextEditingController controller, bool isDate) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        TextField(
+          controller: controller,
+          readOnly: true, // Hacer el campo solo lectura para evitar edición directa
+          decoration: InputDecoration(
+            hintText: isDate ? 'Seleccione la fecha' : 'Seleccione la hora',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(color: Theme.of(context).primaryColor), // Borde del campo
+            ),
+            suffixIcon: Icon(isDate ? Icons.calendar_today : Icons.access_time, color: Theme.of(context).primaryColor),
+          ),
+          onTap: () async {
+            if (isDate) {
+              DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime(2100),
+              );
+              if (pickedDate != null) {
+                setState(() {
+                  controller.text = "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+                });
+              }
+            } else {
+              TimeOfDay? pickedTime = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.now(),
+              );
+              if (pickedTime != null) {
+                setState(() {
+                  controller.text = pickedTime.format(context);
+                });
+              }
+            }
+          },
+        ),
+      ],
     );
   }
 }

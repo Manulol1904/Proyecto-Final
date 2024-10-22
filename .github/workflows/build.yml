@@ -1,0 +1,41 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main  # Cambia esto si usas una rama diferente
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        java-version: '17'  # Cambia la versión según lo que uses
+        distribution: 'temurin'  # Puedes usar 'adopt' o 'temurin'
+
+    - name: Build APK
+      run: ./gradlew assembleRelease  # Comando para construir el APK
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: app-release.apk
+        path: app/build/outputs/apk/release/app-release.apk  # Ajusta esta ruta si es necesario
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v1.0.0  # Cambia esto según tu versión
+        name: Release v1.0.0  # Cambia esto según tu versión
+        body: |
+          Nueva versión disponible.
+        files: app/build/outputs/apk/release/app-release.apk  # Ajusta esta ruta si es necesario
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

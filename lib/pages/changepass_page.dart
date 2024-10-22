@@ -24,7 +24,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       User? user = _auth.currentUser;
       String email = user?.email ?? '';
 
-      // Reautenticar al usuario
+      // Reauthenticate the user
       AuthCredential credential = EmailAuthProvider.credential(
         email: email,
         password: _currentPasswordController.text,
@@ -32,19 +32,19 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
       await user?.reauthenticateWithCredential(credential);
 
-      // Validar nueva contraseña
+      // Validate new password
       if (_newPasswordController.text != _confirmPasswordController.text) {
         throw Exception('Las contraseñas no coinciden');
       }
 
-      // Actualizar la contraseña
+      // Update the password
       await user?.updatePassword(_newPasswordController.text);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Contraseña actualizada correctamente')),
       );
 
-      Navigator.pop(context); // Cerrar la pantalla después de actualizar
+      Navigator.pop(context); // Close the screen after updating
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cambiar la contraseña: $e')),
@@ -62,43 +62,76 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       appBar: AppBar(
         title: const Text('Cambiar Contraseña'),
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.grey,
+        foregroundColor: Colors.grey,// App's primary color
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _currentPasswordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Contraseña Actual',
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Por favor, ingresa tu contraseña actual y la nueva.',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _newPasswordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Nueva Contraseña',
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _confirmPasswordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirmar Nueva Contraseña',
-              ),
-            ),
-            const SizedBox(height: 30),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _changePassword,
-                    child: const Text('Cambiar Contraseña'),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _currentPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña Actual',
+                  prefixIcon: Icon(Icons.lock, color: Theme.of(context).primaryColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
                   ),
-          ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _newPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Nueva Contraseña',
+                  prefixIcon: Icon(Icons.lock, color: Theme.of(context).primaryColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Confirmar Nueva Contraseña',
+                  prefixIcon: Icon(Icons.lock, color: Theme.of(context).primaryColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              Center(
+                child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _changePassword,
+                        child: const Text('Cambiar Contraseña', style: TextStyle(color: Colors.white),),
+                        
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor, // Use primary color for the button
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
