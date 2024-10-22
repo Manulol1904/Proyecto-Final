@@ -11,13 +11,14 @@ class UserDetailPage extends StatelessWidget {
   final String subjectArea;
 
   UserDetailPage({
+    Key? key,
     required this.receiverEmail,
     required this.receiverID,
     required this.firstName,
     required this.lastName,
     required this.role,
     required this.subjectArea,
-  });
+  }) : super(key: key);
 
   final Authservice _authservice = Authservice();
 
@@ -34,32 +35,28 @@ class UserDetailPage extends StatelessWidget {
   }) async {
     CollectionReference solicitudes = FirebaseFirestore.instance.collection('solicitudes');
 
-    return solicitudes.add({
-      'fecha': Timestamp.now(),
-      'solicitante': studentEmail,
-      'solicitanteuid': currentUserID,
-      'solicitanteNombre': studentName,
-      'solicitanteCarrera': studentCareer,
-      'solicitanteCodigo': studentId,
-      'receptor': receiverEmail,
-      'receptoruid': receiverID,
-      'tutorName': '$firstName $lastName',
-      'tutorUid': receiverID,
-    }).then((value) {
+    try {
+      await solicitudes.add({
+        'fecha': Timestamp.now(),
+        'solicitante': studentEmail,
+        'solicitanteuid': currentUserID,
+        'solicitanteNombre': studentName,
+        'solicitanteCarrera': studentCareer,
+        'solicitanteCodigo': studentId,
+        'receptor': receiverEmail,
+        'receptoruid': receiverID,
+        'tutorName': '$firstName $lastName',
+        'tutorUid': receiverID,
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('¡Solicitud de tutoría creada con éxito!'),
-        ),
+        const SnackBar(content: Text('¡Solicitud de tutoría creada con éxito!')),
       );
       Navigator.of(context).pop();
-    }).catchError((error) {
-      print("Failed to create solicitud: $error");
+    } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al crear la solicitud: $error'),
-        ),
+        SnackBar(content: Text('Error al crear la solicitud: $error')),
       );
-    });
+    }
   }
 
   @override
@@ -67,99 +64,109 @@ class UserDetailPage extends StatelessWidget {
     final String currentUserEmail = _authservice.getCurrentUser()!.email!;
     final String currentUserID = _authservice.getCurrentUser()!.uid;
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('Users').doc(currentUserID).get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-        if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Center(child: Text('Datos de estudiante no encontrados.'));
-        }
+    Future<DocumentSnapshot> fetchStudentData() {
+      return FirebaseFirestore.instance.collection('Users').doc(currentUserID).get();
+    }
 
-        var studentData = snapshot.data!.data() as Map<String, dynamic>;
-        String studentName = studentData['firstName'] + ' ' + studentData['lastName'];
-        String studentEmail = studentData['email'];
-        String studentCareer = studentData['career'];
-        String studentId = studentData['studentId'];
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Detalles del Tutor'),
-            backgroundColor: Colors.transparent,
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Detalles del Tutor'),
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.grey,
-          ),
-          body: Center( // Centrar el contenido
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center, // Centrar verticalmente
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.person,
-                    size: 210,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: 20),
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+      ),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: fetchStudentData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('Datos de estudiante no encontrados.'));
+          }
+
+          var studentData = snapshot.data!.data() as Map<String, dynamic>;
+          String studentName = '${studentData['firstName']} ${studentData['lastName']}';
+          String studentEmail = studentData['email'];
+          String studentCareer = studentData['career'];
+          String studentId = studentData['studentId'];
+
+          return Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.person,
+                      size: 150,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    color: Theme.of(context).primaryColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Nombre: $firstName $lastName',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 10),
-                          Text('Email: $receiverEmail', style: const TextStyle(fontSize: 18)),
-                          const SizedBox(height: 10),
-                          Text('Rol: $role', style: const TextStyle(fontSize: 18)),
-                          const SizedBox(height: 10),
-                          Text('Especialidad: $subjectArea', style: const TextStyle(fontSize: 18)),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      createSolicitud(
-                        currentUserEmail: currentUserEmail,
-                        currentUserID: currentUserID,
-                        receiverEmail: receiverEmail,
-                        receiverID: receiverID,
-                        studentName: studentName,
-                        studentEmail: studentEmail,
-                        studentCareer: studentCareer,
-                        studentId: studentId,
-                        context: context,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    const SizedBox(height: 20),
+                    Card(
+                      elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
+                      color: Theme.of(context).primaryColor,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Nombre: $firstName $lastName',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 10),
+                            Text('Email: $receiverEmail', style: const TextStyle(fontSize: 18)),
+                            const SizedBox(height: 10),
+                            Text('Rol: $role', style: const TextStyle(fontSize: 18)),
+                            const SizedBox(height: 10),
+                            Text('Especialidad: $subjectArea', style: const TextStyle(fontSize: 18)),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Text('Solicitar Tutoría', style: TextStyle(fontSize: 18, color: Theme.of(context).textTheme.bodyMedium?.color)),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        createSolicitud(
+                          currentUserEmail: currentUserEmail,
+                          currentUserID: currentUserID,
+                          receiverEmail: receiverEmail,
+                          receiverID: receiverID,
+                          studentName: studentName,
+                          studentEmail: studentEmail,
+                          studentCareer: studentCareer,
+                          studentId: studentId,
+                          context: context,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'Solicitar Tutoría',
+                        style: TextStyle(fontSize: 18, color: Theme.of(context).textTheme.bodyMedium?.color),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

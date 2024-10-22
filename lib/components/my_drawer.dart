@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tutorias_estudiantes/pages/account_page.dart';
 import 'package:tutorias_estudiantes/pages/chatrooms_page.dart';
-import 'package:tutorias_estudiantes/pages/request_page.dart';
 import 'package:tutorias_estudiantes/pages/tutoringsession_page.dart';
+import 'package:tutorias_estudiantes/pages/userprofle_page.dart';
 import 'package:tutorias_estudiantes/services/auth/auth_service.dart';
 import 'package:tutorias_estudiantes/pages/setting_page.dart';
 
@@ -99,7 +98,7 @@ class _MyDrawerState extends State<MyDrawer> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AccountPage(userRole: userRole!),
+                        builder: (context) => UserProfilePage(userRole: userRole!),
                       ),
                     );
                   },

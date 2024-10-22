@@ -2,9 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tutorias_estudiantes/services/auth/auth_gate.dart';
-import 'package:tutorias_estudiantes/services/auth/login_or_register.dart';
 import 'package:tutorias_estudiantes/firebase_options.dart';
-import 'package:tutorias_estudiantes/themes/light_mode.dart';
 import 'package:tutorias_estudiantes/themes/theme_provider.dart';
 
 void main() async {

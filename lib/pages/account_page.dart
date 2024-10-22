@@ -255,7 +255,7 @@ class _AccountPageState extends State<AccountPage> {
                         foregroundColor: Colors.grey,
                       ),
                     ),
-                  ),
+                  ),  
                 ],
               ),
             ),

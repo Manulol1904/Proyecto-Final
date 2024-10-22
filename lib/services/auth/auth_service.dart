@@ -2,21 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Authservice {
-  // instance of auth & firestore
+  // Instancia de auth & firestore
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // get current user
+  // Obtener el usuario actual
   User? getCurrentUser() {
     return _auth.currentUser;
   }
 
-  // Get the current user's UID
+  // Obtener el UID del usuario actual
   String? getCurrentUserUid() {
-    return _auth.currentUser?.uid; // Return current user's UID or null
+    return _auth.currentUser?.uid; // Devuelve el UID del usuario actual o null
   }
 
-  // get user role
+  // Obtener el rol del usuario
   Future<String?> getUserRole() async {
     User? user = _auth.currentUser;
     if (user != null) {
@@ -28,21 +28,18 @@ class Authservice {
 
   // Obtener las salas de chat para el usuario actual
   Stream<QuerySnapshot> getChatRoomsForCurrentUser() {
-    // Obtener el ID del usuario actual
     User? currentUser = _auth.currentUser;
     if (currentUser != null) {
-      // Consultar las salas de chat en las que el usuario actual está presente
       return _firestore
           .collection('chat_rooms')
           .where('UserIds', arrayContains: currentUser.uid)
           .snapshots();
     } else {
-      // Si no hay un usuario actual, retornar un stream vacío
       return const Stream.empty();
     }
   }
 
-  // get requests for current user
+  // Obtener solicitudes para el usuario actual
   Stream<QuerySnapshot> getRequestsForCurrentUser() {
     User? user = _auth.currentUser;
     if (user != null) {
@@ -51,39 +48,36 @@ class Authservice {
           .where('receptor', isEqualTo: user.email)
           .snapshots();
     }
-    throw Exception("No user is currently signed in");
+    throw Exception("No hay usuario actualmente autenticado");
   }
 
-  // sign in
+  // Iniciar sesión
   Future<UserCredential> signInWithEmailPassword(String email, String password) async {
     try {
-      // sign user in 
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email, 
         password: password
       );
-
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw Exception(e.code);
     }
   }
 
-  // sign up
+  // Registrarse y iniciar sesión
   Future<UserCredential> signUpWithEmailPassword(String email, String password) async {
     try {
-      // create user
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email, 
         password: password
       );
 
-      // save user info a separate doc
+      // Guardar la información del usuario en Firestore
       await _firestore.collection("Users").doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
         'email': email,
         'rol': "Estudiante",
-        'isProfileUpdated': false, // New field added
+        'isProfileUpdated': false,
       });
 
       return userCredential;
@@ -92,10 +86,69 @@ class Authservice {
     }
   }
 
-  // sign out
+  // Crear usuario sin iniciar sesión
+  Future<void> createUserWithoutSignIn({
+  required String email,
+  required String password,
+  required String role,
+}) async {
+  try {
+    // Crear un nuevo usuario en Firebase Authentication sin iniciar sesión
+    await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    // Obtener el usuario actual (que es el nuevo usuario)
+    User? newUser  = _auth.currentUser ;
+
+    // Asegurarte de que el usuario no sea nulo
+    if (newUser  != null) {
+      // Guardar la información del usuario en Firestore
+      await _firestore.collection('Users').doc(newUser .uid).set({
+        'uid': newUser .uid,
+        'email': email,
+        'rol': role,
+        'isProfileUpdated': false,
+      });
+
+      // Desconectar el nuevo usuario
+      await _auth.signOut();
+    }
+  } on FirebaseAuthException catch (e) {
+    throw Exception(e.code);
+  }
+}
+
+  // Restablecer contraseña
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(e.code);
+    }
+  }
+
+  // Cerrar sesión
   Future<void> signOut() async {
     return await _auth.signOut();
   }
 
-  // errors
+  // Eliminar usuario de Firestore y autenticación
+  Future<void> deleteUser(String uid) async {
+    try {
+      // Eliminar usuario de Firestore
+      await _firestore.collection('Users').doc(uid).delete();
+
+      // Eliminar usuario de Firebase Authentication
+      User? user = await _auth.currentUser;
+      if (user != null && user.uid == uid) {
+        await user.delete();
+      }
+    } on FirebaseAuthException catch (e) {
+      throw Exception(e.code);
+    } catch (e) {
+      throw Exception("Error al eliminar usuario: $e");
+    }
+  }
 }
