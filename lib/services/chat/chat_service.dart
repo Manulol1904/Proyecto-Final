@@ -21,47 +21,78 @@ class ChatService {
     });
   }
 
+  // Función para generar ID de sala de chat
+  String _getChatRoomID(String userID1, String userID2) {
+    List<String> ids = [userID1, userID2];
+    ids.sort();
+    return ids.join('_');
+  }
+
   // send message
   Future<void> sendMessage(String receiverID, String message) async {
-    // get current user info
-    final String currentUserID = _auth.currentUser!.uid;
-    final String currentUserEmail = _auth.currentUser!.email!;
-    final Timestamp timestamp = Timestamp.now();
+    try {
+      // Obtener información del usuario actual
+      final String currentUserID = _auth.currentUser!.uid;
+      final String currentUserEmail = _auth.currentUser!.email!;
+      final Timestamp timestamp = Timestamp.now();
 
-    // create a new message
-    Message newMessage = Message(
-      senderID: currentUserID,
-      senderEmail: currentUserEmail,
-      receiverID: receiverID,
-      message: message,
-      timestamp: timestamp,
-    );
+      // Obtener el nombre del remitente
+      DocumentSnapshot senderSnapshot = await _firestore.collection("Users").doc(currentUserID).get();
+      String senderName = currentUserEmail; // Usa el correo como fallback
 
-    // construct chat room ID for the two
-    List<String> ids = [currentUserID, receiverID];
-    ids.sort();
-    String chatRoomID = ids.join('_');
+      if (senderSnapshot.exists) {
+        Map<String, dynamic>? senderData = senderSnapshot.data() as Map<String, dynamic>?;
+        senderName = senderData?['firstName'] ?? currentUserEmail; // Usa el nombre si está disponible
+      }
 
-    // create or update the chat room with user IDs
-    await _firestore.collection("chat_rooms").doc(chatRoomID).set({
-      'UserIds': ids,
-      'lastMessageTimestamp': timestamp, // Optional: Store the timestamp of the last message
-    });
+      // Crear un nuevo mensaje
+      Message newMessage = Message(
+        senderID: currentUserID,
+        senderEmail: currentUserEmail,
+        receiverID: receiverID,
+        message: message,
+        timestamp: timestamp,
+      );
 
-    // add new message to the chat room
-    await _firestore
-        .collection("chat_rooms")
-        .doc(chatRoomID)
-        .collection("messages")
-        .add(newMessage.toMap());
+      // Crear o actualizar la sala de chat
+      String chatRoomID = _getChatRoomID(currentUserID, receiverID);
+
+      await _firestore.collection("chat_rooms").doc(chatRoomID).set({
+        'UserIds': [currentUserID, receiverID],
+        'lastMessageTimestamp': timestamp,
+      });
+
+      // Añadir el nuevo mensaje a la sala de chat
+      await _firestore.collection("chat_rooms").doc(chatRoomID).collection("messages").add(newMessage.toMap());
+
+      // Crear la notificación para el receptor
+      await _sendNotification(senderName, receiverID, currentUserEmail, currentUserID, chatRoomID, timestamp);
+      
+    } catch (e) {
+      print("Error al enviar el mensaje: $e");
+      throw Exception("Error al enviar el mensaje: $e");
+    }
   }
+
+  // Función para enviar la notificación
+  Future<void> _sendNotification(String senderName, String receiverID, String currentUserEmail, String currentUserID, String chatRoomID, Timestamp timestamp) async {
+    await _firestore.collection("notifications").add({
+      'senderName': senderName,
+      'receiverID': receiverID,
+      'email': currentUserEmail, // Añadir el correo del receptor
+      'senderID': currentUserID,
+      'chatRoom': chatRoomID,
+      'type': 'message',
+      'isRead': false,
+      'timestamp': timestamp,
+    });
+  }
+
+
 
   // get messages
   Stream<QuerySnapshot> getMessages(String userID, String otherUserID) {
-    // construct a chat room ID for the two users
-    List<String> ids = [userID, otherUserID];
-    ids.sort();
-    String chatRoomID = ids.join('_');
+    String chatRoomID = _getChatRoomID(userID, otherUserID);
 
     return _firestore
         .collection("chat_rooms")
@@ -73,13 +104,10 @@ class ChatService {
 
   // delete chat room and messages
   Future<void> deleteChatRoom(String userID, String otherUserID) async {
-    // construct a chat room ID for the two users
-    List<String> ids = [userID, otherUserID];
-    ids.sort();
-    String chatRoomID = ids.join('_');
+    String chatRoomID = _getChatRoomID(userID, otherUserID);
 
     // Delete all messages in the chat room
-    WriteBatch batch = _firestore.batch();  // Using batch to handle multiple deletes
+    WriteBatch batch = _firestore.batch(); // Using batch to handle multiple deletes
 
     QuerySnapshot messagesSnapshot = await _firestore
         .collection("chat_rooms")
@@ -88,7 +116,7 @@ class ChatService {
         .get();
 
     for (var doc in messagesSnapshot.docs) {
-      batch.delete(doc.reference);  // Delete each message
+      batch.delete(doc.reference); // Delete each message
     }
 
     // Delete the chat room document after deleting messages
@@ -97,18 +125,19 @@ class ChatService {
     // Commit the batch
     await batch.commit();
   }
-
-  
 }
+
 class TutoringService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Stream<List<TutoringSession>> getTutoringSessions(String? studentUid, String? tutorUid) {
     Query query = _firestore.collection("TutoringSessions");
+    
 
     if (studentUid != null) {
       query = query.where("studentUid", isEqualTo: studentUid);
-    } else if (tutorUid != null) {
+    }
+    if (tutorUid != null) {
       query = query.where("tutorUid", isEqualTo: tutorUid);
     }
 
@@ -119,5 +148,3 @@ class TutoringService {
     });
   }
 }
-
-

@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tutorias_estudiantes/components/my_drawer.dart';
+import 'package:tutorias_estudiantes/components/notifications.dart';
 import 'package:tutorias_estudiantes/pages/Admin_page.dart';
 import 'package:tutorias_estudiantes/pages/account_page.dart';
 import 'package:tutorias_estudiantes/pages/request_page.dart'; // Importar RequestsPage
 import 'package:tutorias_estudiantes/pages/student_page.dart';
 import 'package:tutorias_estudiantes/services/auth/auth_service.dart';
+ // Importar el widget de notificaciones
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
@@ -43,32 +45,31 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
- // Muestra un popup para que el usuario actualice su información
-void _showUpdateDialog() async {
-  String userRole = (await _authservice.getUserRole()) as String? ?? ''; // Usamos await para esperar el valor de getUserRole
-  showDialog(
-    context: context,
-    barrierDismissible: false, // Eliminar la opción de cerrar tocando fuera
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text("Actualiza tus datos"),
-        content: const Text("Parece que no tienes tu nombre registrado. Por favor, actualiza tu información."),
-        actions: <Widget>[
-          TextButton(
-            child: const Text("Actualizar"),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AccountPage(userRole: userRole)),
-              );
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
+  // Muestra un popup para que el usuario actualice su información
+  void _showUpdateDialog() async {
+    String userRole = (await _authservice.getUserRole()) as String? ?? ''; // Usamos await para esperar el valor de getUserRole
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Eliminar la opción de cerrar tocando fuera
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Actualiza tus datos"),
+          content: const Text("Parece que no tienes tu nombre registrado. Por favor, actualiza tu información."),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Actualizar"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AccountPage(userRole: userRole)),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +80,20 @@ void _showUpdateDialog() async {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.grey,
         elevation: 0,
+        actions: [
+          FutureBuilder<String?>(
+            future: _getUserRole(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox(); // Si está cargando, mostrar nada
+              }
+              if (snapshot.hasData) {
+                return NotificationIcon(userRole: snapshot.data ?? ''); // Pasar el rol del usuario al ícono de notificaciones
+              }
+              return const SizedBox();
+            },
+          ),
+        ],
       ),
       drawer: const MyDrawer(),
       body: FutureBuilder<String?>(
@@ -93,16 +108,15 @@ void _showUpdateDialog() async {
 
           if (snapshot.data == 'Admin') {
             return const AllUsersPage(showAppBar: false); // Pasar showAppBar como false para ocultar el AppBar
-          }if (snapshot.data == 'Tutor') {
+          } if (snapshot.data == 'Tutor') {
             return RequestsPage(showAppBar: false); // Pasar showAppBar como false para ocultar el AppBar
           } if (snapshot.data == 'Estudiante') {
             return StudentPage(showAppBar: false); // Pasar showAppBar como false para ocultar el AppBar
-          } else{
+          } else {
             return const StudentPage(showAppBar: false);
           }
         },
       ),
     );
   }
-
 }

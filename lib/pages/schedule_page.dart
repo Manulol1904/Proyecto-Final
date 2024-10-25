@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -57,31 +58,52 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
   }
 
   Future<void> _scheduleTutoringSession() async {
-    try {
-      DocumentReference newSessionRef = FirebaseFirestore.instance.collection('TutoringSessions').doc();
-
-      await newSessionRef.set({
-        'tutoringId': newSessionRef.id,
-        'studentName': _studentName,
-        'studentUid': widget.solicitanteUid,
-        'studentCareer': _studentCareer,
-        'tutorName': _tutorName,
-        'tutorUid': widget.receptorUid,
-        'scheduledDate': _dateController.text,
-        'scheduledTime': _timeController.text,
-      });
-
+  try {
+    // Asegúrate de que el usuario esté autenticado
+    User?  user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tutoría agendada correctamente')),
+        SnackBar(content: Text('Debes estar autenticado para agendar una tutoría.')),
       );
-
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al agendar la tutoría: $e')),
-      );
+      return;
     }
+
+    DocumentReference newSessionRef = FirebaseFirestore.instance.collection('TutoringSessions').doc();
+
+    await newSessionRef.set({
+      'tutoringId': newSessionRef.id,
+      'studentName': _studentName,
+      'studentUid': widget.solicitanteUid,
+      'studentCareer': _studentCareer,
+      'tutorName': _tutorName,
+      'tutorUid': widget.receptorUid,
+      'scheduledDate': _dateController.text,
+      'scheduledTime': _timeController.text,
+      'timestamp': Timestamp.now(),
+    });
+
+    await FirebaseFirestore.instance.collection('notifications').add({
+      'receiverID': widget.solicitanteUid, // ID del estudiante que recibirá la notificación
+      'type': 'tutoring', // Tipo de notificación
+      'isRead': false, // No leída al crearse
+      'timestamp': Timestamp.now(),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Tutoría agendada correctamente')),
+    );
+
+    Navigator.pop(context);
+  } catch (e, stackTrace) {
+    print("Error: $e"); // Imprimir el error
+    print("StackTrace: $stackTrace"); // Imprimir la traza de pila
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al agendar la tutoría: ${e.toString()}')),
+    );
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {

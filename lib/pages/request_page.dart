@@ -33,17 +33,25 @@ class RequestsPage extends StatelessWidget {
 
           final requests = snapshot.data!.docs;
 
+          // Ordenar las solicitudes por fecha (timestamp)
+          final sortedRequests = List.from(requests);
+          sortedRequests.sort((a, b) {
+            var dateA = (a['fecha'] as Timestamp).toDate();
+            var dateB = (b['fecha'] as Timestamp).toDate();
+            return dateB.compareTo(dateA); // Orden descendente (más reciente primero)
+          });
+
           return ListView.builder(
-            itemCount: requests.length,
+            itemCount: sortedRequests.length,
             padding: const EdgeInsets.all(12.0),
             itemBuilder: (context, index) {
-              var request = requests[index].data() as Map<String, dynamic>;
+              var request = sortedRequests[index].data() as Map<String, dynamic>;
               var studentName = "${request['solicitanteNombre']}";
               var studentEmail = request['solicitante'];
               var studentCareer = request['solicitanteCarrera'];
               var date = (request['fecha'] as Timestamp).toDate();
               var formattedDate = "${date.day}/${date.month}/${date.year}";
-              var requestId = requests[index].id;
+              var requestId = sortedRequests[index].id;
 
               return Card(
                 elevation: 4,
@@ -55,7 +63,7 @@ class RequestsPage extends StatelessWidget {
                   contentPadding: const EdgeInsets.all(16.0),
                   title: Text(
                     studentName,
-                    style:  TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.onSurface,

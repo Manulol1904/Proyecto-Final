@@ -116,13 +116,13 @@ class _ChatPageState extends State<ChatPage> {
             },
             itemBuilder: (BuildContext context) {
               return [
-                PopupMenuItem(
+                const PopupMenuItem(
                   value: 'delete',
                   child: Text('Eliminar chat'),
                 ),
               ];
             },
-            icon: Icon(Icons.more_vert),
+            icon:const Icon(Icons.more_vert),
           ),
         ],
       ),

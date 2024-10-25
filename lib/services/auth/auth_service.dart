@@ -130,9 +130,17 @@ class Authservice {
   }
 
   // Cerrar sesión
-  Future<void> signOut() async {
-    return await _auth.signOut();
+  // Cerrar sesión
+Future<void> signOut() async {
+  try {
+    print("Intentando cerrar sesión...");
+    await _auth.signOut();
+    print("Sesión cerrada con éxito.");
+  } catch (e) {
+    print("Error al cerrar sesión: $e");
+    throw Exception("Error al cerrar sesión: $e");
   }
+}
 
   // Eliminar usuario de Firestore y autenticación
   Future<void> deleteUser(String uid) async {

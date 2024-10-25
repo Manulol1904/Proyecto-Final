@@ -21,7 +21,7 @@ class TutoringSessionsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Tutorías', ),
+        title: const Text('Mis Tutorías'),
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.grey,
       ),
@@ -41,6 +41,9 @@ class TutoringSessionsPage extends StatelessWidget {
           if (sessions == null || sessions.isEmpty) {
             return const Center(child: Text('No tienes tutorías asignadas.'));
           }
+
+          // Ordenar las sesiones por timestamp (suponiendo que 'timestamp' es un campo de tipo DateTime)
+          sessions.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
           return ListView.builder(
             padding: const EdgeInsets.all(16.0),
