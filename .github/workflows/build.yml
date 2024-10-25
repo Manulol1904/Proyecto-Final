@@ -11,22 +11,19 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3  # Actualizado a la versión más reciente
+      uses: actions/checkout@v2
 
     - name: Set up JDK
-      uses: actions/setup-java@v3  # Actualizado a la versión más reciente
+      uses: actions/setup-java@v2
       with:
         java-version: '17'  # Cambia la versión según lo que uses
         distribution: 'temurin'  # Puedes usar 'adopt' o 'temurin'
-
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew  # Asegúrate de que gradlew sea ejecutable
 
     - name: Build APK
       run: ./gradlew assembleRelease  # Comando para construir el APK
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3  # Actualizado a la versión más reciente
+      uses: actions/upload-artifact@v2
       with:
         name: app-release.apk
         path: app/build/outputs/apk/release/app-release.apk  # Ajusta esta ruta si es necesario
@@ -42,3 +39,4 @@ jobs:
         files: app/build/outputs/apk/release/app-release.apk  # Ajusta esta ruta si es necesario
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
