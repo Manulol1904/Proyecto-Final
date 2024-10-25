@@ -114,7 +114,7 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
                 // Show the existing rating
                 Text(
                   'Calificación actual: ${widget.session.rating}',
-                  style: TextStyle(fontSize: 18, color: Colors.green),
+                  style: const TextStyle(fontSize: 18, color: Colors.green),
                 ),
               ] else ...[
                 // Slider

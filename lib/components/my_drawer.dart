@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tutorias_estudiantes/pages/Alltutories_page.dart';
+import 'package:tutorias_estudiantes/pages/alltutories_page.dart';
 import 'package:tutorias_estudiantes/pages/chatrooms_page.dart';
 import 'package:tutorias_estudiantes/pages/tutoringsession_page.dart';
 import 'package:tutorias_estudiantes/pages/userprofle_page.dart';
@@ -48,7 +48,7 @@ class _MyDrawerState extends State<MyDrawer> {
     if (userRole == null || userUid == null) { // Check if userRole or userUid is null
       return Drawer(
         backgroundColor: Theme.of(context).colorScheme.background,
-        child: Center(
+        child: const Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -120,7 +120,7 @@ class _MyDrawerState extends State<MyDrawer> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ChatRoomsPage(),
+                          builder: (context) => const ChatRoomsPage(),
                         ),
                       );
                     },
@@ -207,7 +207,7 @@ class _MyDrawerState extends State<MyDrawer> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AllTutoringSessionsPage(), // Asegúrate de tener la página para mostrar todas las tutorías
+                          builder:  (context) => const AllTutoringSessionsPage(), // Asegúrate de tener la página para mostrar todas las tutorías
                         ),
                       );
                     },

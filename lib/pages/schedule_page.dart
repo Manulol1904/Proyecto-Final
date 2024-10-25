@@ -63,7 +63,7 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
     User?  user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Debes estar autenticado para agendar una tutoría.')),
+        const SnackBar(content: Text('Debes estar autenticado para agendar una tutoría.')),
       );
       return;
     }

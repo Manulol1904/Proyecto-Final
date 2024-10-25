@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -113,7 +115,7 @@ class _AccountPageState extends State<AccountPage> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()), // Reemplazar con el HomePage actualizado
+        MaterialPageRoute(builder: (context) => const HomePage()), // Reemplazar con el HomePage actualizado
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

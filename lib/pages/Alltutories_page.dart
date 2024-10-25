@@ -24,8 +24,8 @@ class AllTutoringSessionsPage extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Estudiante: ${session['studentName'] ?? 'Sin título'}', style: TextStyle(fontWeight: FontWeight.bold)), // Nombre del estudiante 
-              Text('Tutor: ${session['tutorName'] ?? 'Desconocido'}', style: TextStyle(fontWeight: FontWeight.bold)), // Nombre del tutor
+              Text('Estudiante: ${session['studentName'] ?? 'Sin título'}', style: const TextStyle(fontWeight: FontWeight.bold)), // Nombre del estudiante 
+              Text('Tutor: ${session['tutorName'] ?? 'Desconocido'}', style: const TextStyle(fontWeight: FontWeight.bold)), // Nombre del tutor
               Text('Fecha: ${session['scheduledDate'] ?? 'Sin fecha'}'),
               Text('Hora: ${session['scheduledTime'] ?? 'Sin hora'}'),
               Text('Valoracion: ${session['rating'] ?? 'Sin valoracion'}'),

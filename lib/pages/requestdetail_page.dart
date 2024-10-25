@@ -11,7 +11,7 @@ class RequestDetailPage extends StatelessWidget {
   final DateTime? date;
   final String requestId;
 
-  RequestDetailPage({
+  const RequestDetailPage({
     required this.solicitante,
     required this.solicitanteUid,
     required this.receptor,

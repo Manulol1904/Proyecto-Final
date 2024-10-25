@@ -3,20 +3,20 @@ import 'package:tutorias_estudiantes/services/auth/auth_service.dart';
 import 'package:tutorias_estudiantes/components/my_button.dart';
 import 'package:tutorias_estudiantes/components/my_textfiled.dart';
 
-class LoginPage extends StatelessWidget {
-  // email and pw text controllers
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _pwController = TextEditingController();
-
-  // Tap to go to Register page
+class LoginPage extends StatefulWidget {
   final void Function()? onTap;
 
-  LoginPage({
-    super.key,
-    required this.onTap,
-  });
+  const LoginPage({super.key, required this.onTap});
 
-  // login method
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _pwController = TextEditingController();
+  bool _isPasswordVisible = false;
+
   void login(BuildContext context) async {
     final authservice = Authservice();
     try {
@@ -26,16 +26,21 @@ class LoginPage extends StatelessWidget {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(e.toString()),
+          title: const Text("Inicio de sesión fallido"),
+          content: const Text("Por favor, revisa tu correo o contraseña e intenta nuevamente."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
         ),
       );
     }
   }
 
-  // Forgot password method
   void forgotPassword(BuildContext context) {
-    final TextEditingController _forgotEmailController =
-        TextEditingController();
+    final TextEditingController _forgotEmailController = TextEditingController();
 
     showDialog(
       context: context,
@@ -51,7 +56,7 @@ class LoginPage extends StatelessWidget {
                 controller: _forgotEmailController,
                 decoration: InputDecoration(
                   hintText: 'Correo electrónico',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(
                       color: Theme.of(context).colorScheme.primary,
@@ -65,7 +70,6 @@ class LoginPage extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 final authservice = Authservice();
-
                 try {
                   await authservice.resetPassword(_forgotEmailController.text);
                   Navigator.of(context).pop(); // Close the dialog
@@ -96,15 +100,12 @@ class LoginPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // logo
             Icon(
               Icons.message,
               size: 60,
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 50),
-
-            // welcome back message
             Text(
               "Bienvenido de vuelta",
               style: TextStyle(
@@ -113,31 +114,29 @@ class LoginPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 25),
-
-            // email textfield
             MyTextField(
               hintText: "Correo",
               obscureText: false,
               controller: _emailController,
             ),
             const SizedBox(height: 10),
-
-            // pw textfield
             MyTextField(
               hintText: "Contraseña",
-              obscureText: true,
+              obscureText: !_isPasswordVisible,
               controller: _pwController,
+              hasToggleIcon: true,
+              onToggleVisibility: () {
+                setState(() {
+                  _isPasswordVisible = !_isPasswordVisible;
+                });
+              },
             ),
             const SizedBox(height: 10),
-
-            // login button
             MyButton(
               text: "Ingresar",
               onTap: () => login(context),
             ),
             const SizedBox(height: 25),
-
-            // register now
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -147,7 +146,7 @@ class LoginPage extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary),
                 ),
                 GestureDetector(
-                  onTap: onTap,
+                  onTap: widget.onTap,
                   child: Text(
                     "Registrate",
                     style: TextStyle(
@@ -158,8 +157,7 @@ class LoginPage extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10), // Space before forgot password
-            // Forgot password text
+            const SizedBox(height: 10),
             GestureDetector(
               onTap: () => forgotPassword(context),
               child: Text(

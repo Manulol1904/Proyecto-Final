@@ -179,7 +179,7 @@ class _AllUsersPageState extends State<AllUsersPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Información del Usuario"),
+          title: const Text("Información del Usuario"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

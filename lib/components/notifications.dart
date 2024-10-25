@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,13 +10,13 @@ import 'package:tutorias_estudiantes/pages/tutoringsession_page.dart';
 class NotificationIcon extends StatefulWidget {
   final String userRole;
 
-  const NotificationIcon({Key? key, required this.userRole}) : super(key: key);
+  const NotificationIcon({super.key, required this.userRole});
 
   @override
-  _NotificationIconState createState() => _NotificationIconState();
+  NotificationIconState createState() => NotificationIconState();
 }
 
-class _NotificationIconState extends State<NotificationIcon> {
+class NotificationIconState extends State<NotificationIcon> {
   int notificationCount = 0; // Unread notification counter
   Map<String, DocumentSnapshot> messageNotifications = {}; // Map to store one message notification per sender
   List<DocumentSnapshot> tutoringNotifications = []; // List of tutoring notifications
@@ -43,8 +45,8 @@ class _NotificationIconState extends State<NotificationIcon> {
           .snapshots()
           .listen((snapshot) {
         if (snapshot.docs.isNotEmpty) {
+          if (!mounted) return; // Ensure widget is still mounted
           setState(() {
-            // Clear current notifications
             messageNotifications.clear();
             tutoringNotifications.clear();
 
@@ -52,30 +54,22 @@ class _NotificationIconState extends State<NotificationIcon> {
               String type = doc.get('type');
               if (type == 'message') {
                 String senderID = doc.get('senderID');
-                // Keep only the latest message per sender
                 messageNotifications[senderID] = doc;
               } else if (type == 'tutoring') {
                 tutoringNotifications.add(doc);
               }
             }
 
-            // Calculate the total notification count
             notificationCount = messageNotifications.length + tutoringNotifications.length;
-            // Set the type to the first notification's type, just for display purposes
-            if (messageNotifications.isNotEmpty) {
-              notificationType = 'message';
-            } else if (tutoringNotifications.isNotEmpty) {
-              notificationType = 'tutoring';
-            } else {
-              notificationType = '';
-            }
+            notificationType = messageNotifications.isNotEmpty ? 'message' : tutoringNotifications.isNotEmpty ? 'tutoring' : '';
           });
         } else {
+          if (!mounted) return; // Ensure widget is still mounted
           setState(() {
             notificationCount = 0;
             messageNotifications.clear();
             tutoringNotifications.clear();
-            notificationType = ''; // Reset notification type
+            notificationType = '';
           });
         }
       });
@@ -87,16 +81,15 @@ class _NotificationIconState extends State<NotificationIcon> {
     return Stack(
       children: [
         IconButton(
-          icon: Icon(Icons.notifications, color: Colors.grey),
+          icon: const Icon(Icons.notifications, color: Colors.grey),
           onPressed: _showNotificationPopup, // Show popup when pressed
         ),
-        if (notificationCount > 0) ...[
+        if (notificationCount > 0)
           Positioned(
             right: 11,
             top: 11,
             child: _buildNotificationIndicator(),
           ),
-        ],
       ],
     );
   }
@@ -105,11 +98,11 @@ class _NotificationIconState extends State<NotificationIcon> {
     Color indicatorColor;
 
     if (notificationType == 'message') {
-      indicatorColor = Colors.red; // Message notification
+      indicatorColor = Colors.red;
     } else if (widget.userRole == 'Estudiante' && notificationType == 'tutoring') {
-      indicatorColor = Colors.green; // Assigned tutoring notification
+      indicatorColor = Colors.green;
     } else {
-      indicatorColor = Colors.transparent; // No notifications
+      indicatorColor = Colors.transparent;
     }
 
     return CircleAvatar(
@@ -118,11 +111,17 @@ class _NotificationIconState extends State<NotificationIcon> {
     );
   }
 
-  // Show notification popup
   void _showNotificationPopup() async {
+    if (notificationCount == 0) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No tienes notificaciones pendientes")),
+      );
+      return;
+    }
+
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -131,19 +130,10 @@ class _NotificationIconState extends State<NotificationIcon> {
       Offset.zero & overlay.size,
     );
 
-    // Ensure there are notifications before showing the menu
-    if (notificationCount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("No tienes notificaciones pendientes")),
-      );
-      return;
-    }
-
     await showMenu(
       context: context,
       position: position,
       items: [
-        // Add message notifications to the menu
         ...messageNotifications.values.map((notification) {
           return PopupMenuItem(
             value: notification,
@@ -152,8 +142,7 @@ class _NotificationIconState extends State<NotificationIcon> {
               onTap: () => _onNotificationTapped(notification),
             ),
           );
-        }).toList(),
-        // Add tutoring notifications to the menu
+        }),
         ...tutoringNotifications.map((notification) {
           return PopupMenuItem(
             value: notification,
@@ -162,33 +151,29 @@ class _NotificationIconState extends State<NotificationIcon> {
               onTap: () => _onNotificationTapped(notification),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
 
-  // Generate notification text
   String _getNotificationText(DocumentSnapshot notification) {
     String type = notification.get('type');
-    if (type == 'message') {
-      return 'Nuevo mensaje de ${notification.get('senderName')}';
-    } else if (type == 'tutoring') {
-      return 'Nueva tutoría asignada';
-    } else {
-      return 'Notificación';
-    }
+    return type == 'message'
+        ? 'Nuevo mensaje de ${notification.get('senderName')}'
+        : type == 'tutoring'
+            ? 'Nueva tutoría asignada'
+            : 'Notificación';
   }
 
-  // Actions when a notification is tapped
-  // Actions when a notification is tapped
-void _onNotificationTapped(DocumentSnapshot notification) async {
-  Navigator.pop(context); // Close the menu
+  void _onNotificationTapped(DocumentSnapshot notification) async {
+  if (!mounted) return;
+  Navigator.pop(context);
   String type = notification.get('type');
 
   if (type == 'message') {
     String senderID = notification.get('senderID');
 
-    // Mark all unread messages from this sender as read
+    // Retrieve and delete all unread messages from the sender
     QuerySnapshot unreadMessages = await FirebaseFirestore.instance
         .collection('notifications')
         .where('receiverID', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
@@ -196,26 +181,20 @@ void _onNotificationTapped(DocumentSnapshot notification) async {
         .where('isRead', isEqualTo: false)
         .get();
 
-    // Update all unread notifications from this sender
     for (var doc in unreadMessages.docs) {
-      await FirebaseFirestore.instance
-          .collection('notifications')
-          .doc(doc.id)
-          .update({'isRead': true});
+      await FirebaseFirestore.instance.collection('notifications').doc(doc.id).delete();
     }
 
-    // Navigate to chat
     String chatRoomID = notification.get('chatRoom');
-    String receiverID = notification.get('senderID'); // Get receiver ID
-    String receiverEmail = notification.get('email'); // Get receiver email
+    String receiverID = notification.get('senderID');
+    String receiverEmail = notification.get('email');
     _navigateToChat(chatRoomID, receiverID, receiverEmail);
-
   } else if (type == 'tutoring') {
     String studentUID = notification.get('receiverID');
-    await FirebaseFirestore.instance
-          .collection('notifications')
-          .doc(notification.id)
-          .update({'isRead': true});
+
+    // Delete the tutoring notification document
+    await FirebaseFirestore.instance.collection('notifications').doc(notification.id).delete();
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -227,12 +206,11 @@ void _onNotificationTapped(DocumentSnapshot notification) async {
     );
   }
 
-  // Refresh notifications to avoid showing those already read
+  // Refresh notifications after deletion
   _checkNotifications();
 }
 
 
-  // Navigate to the corresponding chat screen
   void _navigateToChat(String chatRoomID, String receiverID, String receiverEmail) {
     Navigator.push(
       context,

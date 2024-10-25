@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tutorias_estudiantes/components/my_drawer.dart';
 import 'package:tutorias_estudiantes/components/notifications.dart';
-import 'package:tutorias_estudiantes/pages/Admin_page.dart';
+import 'package:tutorias_estudiantes/pages/admin_page.dart';
 import 'package:tutorias_estudiantes/pages/account_page.dart';
 import 'package:tutorias_estudiantes/pages/request_page.dart'; // Importar RequestsPage
 import 'package:tutorias_estudiantes/pages/student_page.dart';
@@ -12,7 +12,7 @@ import 'package:tutorias_estudiantes/services/auth/auth_service.dart';
  // Importar el widget de notificaciones
 
 class HomePage extends StatefulWidget {
-  HomePage({super.key});
+  const HomePage({super.key});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> {
           } if (snapshot.data == 'Tutor') {
             return RequestsPage(showAppBar: false); // Pasar showAppBar como false para ocultar el AppBar
           } if (snapshot.data == 'Estudiante') {
-            return StudentPage(showAppBar: false); // Pasar showAppBar como false para ocultar el AppBar
+            return const StudentPage(showAppBar: false); // Pasar showAppBar como false para ocultar el AppBar
           } else {
             return const StudentPage(showAppBar: false);
           }
