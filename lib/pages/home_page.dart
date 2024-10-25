@@ -47,12 +47,16 @@ class _HomePageState extends State<HomePage> {
 
   // Muestra un popup para que el usuario actualice su información
   void _showUpdateDialog() async {
-    String userRole = (await _authservice.getUserRole()) as String? ?? ''; // Usamos await para esperar el valor de getUserRole
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Eliminar la opción de cerrar tocando fuera
-      builder: (BuildContext context) {
-        return AlertDialog(
+  String userRole = (await _authservice.getUserRole()) as String? ?? ''; // Wait for user role
+  showDialog(
+    context: context,
+    barrierDismissible: false, // Prevent dismissing by tapping outside
+    builder: (BuildContext context) {
+      return WillPopScope(
+        onWillPop: () async {
+          return false; // Prevent dialog from being dismissed
+        },
+        child: AlertDialog(
           title: const Text("Actualiza tus datos"),
           content: const Text("Parece que no tienes tu nombre registrado. Por favor, actualiza tu información."),
           actions: <Widget>[
@@ -66,10 +70,12 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

@@ -65,26 +65,39 @@ class Authservice {
   }
 
   // Registrarse y iniciar sesión
-  Future<UserCredential> signUpWithEmailPassword(String email, String password) async {
-    try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email, 
-        password: password
-      );
+ Future<UserCredential> signUpWithEmailPassword(String email, String password) async {
+  try {
+    UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      // Guardar la información del usuario en Firestore
-      await _firestore.collection("Users").doc(userCredential.user!.uid).set({
-        'uid': userCredential.user!.uid,
-        'email': email,
-        'rol': "Estudiante",
-        'isProfileUpdated': false,
-      });
+    // Save user information in Firestore
+    await _firestore.collection("Users").doc(userCredential.user!.uid).set({
+      'uid': userCredential.user!.uid,
+      'email': email,
+      'rol': "Estudiante",
+      'isProfileUpdated': false,
+    });
 
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      throw Exception(e.code);
+    return userCredential;
+  } on FirebaseAuthException catch (e) {
+    // Handle specific errors
+    switch (e.code) {
+      case 'email-already-in-use':
+        throw Exception("El correo ya está registrado. Intenta con otro.");
+      case 'weak-password':
+        throw Exception("La contraseña es demasiado débil.");
+      case 'invalid-email':
+        throw Exception("El correo ingresado no es válido.");
+      default:
+        throw Exception("Error de registro: ${e.message}");
     }
+  } catch (e) {
+    throw Exception("Error desconocido: $e");
   }
+}
+
 
   // Crear usuario sin iniciar sesión
   Future<void> createUserWithoutSignIn({
@@ -129,7 +142,6 @@ class Authservice {
     }
   }
 
-  // Cerrar sesión
   // Cerrar sesión
 Future<void> signOut() async {
   try {

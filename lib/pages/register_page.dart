@@ -26,35 +26,40 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isConfirmPasswordVisible = false;
 
   // Register method
-  void register(BuildContext context) {
-    // Get auth service
-    final _auth = Authservice();
+  void register(BuildContext context) async {
+  final _auth = Authservice();
 
-    // Password match -> create user
-    if (_pwController.text == _confirmpwController.text) {
-      try {
-        _auth.signUpWithEmailPassword(
-          _emailController.text,
-          _pwController.text,
-        );
-      } catch (e) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(e.toString()),
-          ),
-        );
-      }
-    } else {
-      // Passwords don't match -> show error
+  if (_pwController.text == _confirmpwController.text) {
+    try {
+      await _auth.signUpWithEmailPassword(
+        _emailController.text,
+        _pwController.text,
+      );
+      // Optionally, navigate to the next page after successful registration
+    } catch (e) {
       showDialog(
         context: context,
-        builder: (context) => const AlertDialog(
-          title: Text("Las contraseñas no coinciden"),
+        builder: (context) => AlertDialog(
+          title: Text(e.toString()), // Show error message
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), // Dismiss dialog
+              child: Text("OK"),
+            ),
+          ],
         ),
       );
     }
+  } else {
+    showDialog(
+      context: context,
+      builder: (context) => const AlertDialog(
+        title: Text("Las contraseñas no coinciden"),
+      ),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

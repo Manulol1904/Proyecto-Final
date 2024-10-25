@@ -1,3 +1,5 @@
+// ignore_for_file: sort_child_properties_last, file_names, use_super_parameters, library_private_types_in_public_api, unnecessary_cast, unnecessary_to_list_in_spreads, use_build_context_synchronously, avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tutorias_estudiantes/pages/adduser_page.dart';
