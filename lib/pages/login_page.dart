@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tutorias_estudiantes/pages/home_page.dart';
+import 'package:tutorias_estudiantes/pages/register_page.dart';
 import 'package:tutorias_estudiantes/services/auth/auth_service.dart';
 import 'package:tutorias_estudiantes/components/my_button.dart';
 import 'package:tutorias_estudiantes/components/my_textfiled.dart';
@@ -18,25 +20,48 @@ class _LoginPageState extends State<LoginPage> {
   bool _isPasswordVisible = false;
 
   void login(BuildContext context) async {
-    final authservice = Authservice();
-    try {
-      await authservice.signInWithEmailPassword(
-          _emailController.text, _pwController.text);
-    } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Inicio de sesión fallido"),
-          content: const Text("Por favor, revisa tu correo o contraseña e intenta nuevamente."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK"),
-            ),
-          ],
+  final authservice = Authservice();
+  try {
+    await authservice.signInWithEmailPassword(
+        _emailController.text, _pwController.text);
+    
+    // Navigate to the Home Page after successful login
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(), // Replace with your actual home page widget
         ),
       );
     }
+  } catch (e) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Inicio de sesión fallido"),
+        content: const Text("Por favor, revisa tu correo o contraseña e intenta nuevamente."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+  void navigateToRegister() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RegisterPage(
+          onTap: () => Navigator.pop(context), // Para volver al login
+        ),
+      ),
+    );
   }
 
   void forgotPassword(BuildContext context) {
@@ -146,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Theme.of(context).colorScheme.primary),
                 ),
                 GestureDetector(
-                  onTap: widget.onTap,
+                  onTap: navigateToRegister,
                   child: Text(
                     "Registrate",
                     style: TextStyle(

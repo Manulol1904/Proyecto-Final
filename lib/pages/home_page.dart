@@ -33,17 +33,36 @@ class _HomePageState extends State<HomePage> {
 
   // Verifica si el usuario tiene un nombre
   Future<void> _checkUserInfo() async {
-    User? user = _authservice.getCurrentUser();
-    if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
+  // Esperar un breve momento para asegurar que la página esté completamente montada
+  await Future.delayed(const Duration(milliseconds: 500));
+  
+  if (!mounted) return;
+
+  User? user = _authservice.getCurrentUser();
+  if (user != null) {
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user.uid)
+          .get();
+          
+      if (!mounted) return;
+
       if (userDoc.exists) {
         Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
         if (userData['firstName'] == null || userData['firstName'].isEmpty) {
-          _showUpdateDialog(); // Muestra el popup si no tiene nombre
+          // Verificar si el contexto está disponible antes de mostrar el diálogo
+          if (mounted && context.mounted) {
+            _showUpdateDialog();
+          }
         }
       }
+    } catch (e) {
+      // Manejar cualquier error que pueda ocurrir
+      debugPrint("Error checking user info: $e");
     }
   }
+}
 
   // Muestra un popup para que el usuario actualice su información
   void _showUpdateDialog() async {

@@ -17,47 +17,52 @@ class AllTutoringSessionsPage extends StatelessWidget {
   }
 
   // Método para mostrar el diálogo de detalles de la tutoría
-  void _showTutoringSessionDetails(BuildContext context, DocumentSnapshot session) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Detalles de la Tutoría'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Estudiante: ${session['studentName'] ?? 'Sin título'}', style: const TextStyle(fontWeight: FontWeight.bold)), // Nombre del estudiante 
-              Text('Tutor: ${session['tutorName'] ?? 'Desconocido'}', style: const TextStyle(fontWeight: FontWeight.bold)), // Nombre del tutor
-              Text('Fecha: ${session['scheduledDate'] ?? 'Sin fecha'}'),
-              Text('Hora: ${session['scheduledTime'] ?? 'Sin hora'}'),
-              Text('Valoracion: ${session['rating'] ?? 'Sin valoracion'}'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Eliminar'),
-              onPressed: () {
-                _deleteTutoringSession(session.id); // Llamar al método de eliminación
-                Navigator.of(context).pop(); // Cerrar el diálogo
-              },
-            ),
-            TextButton(
-              child: const Text('Cerrar'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
-              },
-            ),
+void _showTutoringSessionDetails(BuildContext context, DocumentSnapshot session) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Detalles de la Tutoría'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Estudiante: ${session['studentName'] ?? 'Sin título'}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('Tutor: ${session['tutorName'] ?? 'Desconocido'}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('Fecha: ${session['scheduledDate'] ?? 'Sin fecha'}'),
+            Text('Hora: ${session['scheduledTime'] ?? 'Sin hora'}'),
+            // Only show the rating if it exists
+            if (session['rating'] != null) 
+              Text('Valoración: ${session['rating']}'),
           ],
-        );
-      },
-    );
-  }
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Eliminar'),
+            onPressed: () {
+              _deleteTutoringSession(session.id); // Llamar al método de eliminación
+              Navigator.of(context).pop(); // Cerrar el diálogo
+            },
+          ),
+          TextButton(
+            child: const Text('Cerrar'),
+            onPressed: () {
+              Navigator.of(context).pop(); // Cerrar el diálogo
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Todas las Tutorías'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.grey,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('TutoringSessions').snapshots(),

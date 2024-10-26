@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tutorias_estudiantes/pages/home_page.dart';
 import 'package:tutorias_estudiantes/services/auth/auth_service.dart';
 import 'package:tutorias_estudiantes/components/my_button.dart';
 import 'package:tutorias_estudiantes/components/my_textfiled.dart';
@@ -31,30 +32,68 @@ class _RegisterPageState extends State<RegisterPage> {
 
   if (_pwController.text == _confirmpwController.text) {
     try {
+      // Mostrar indicador de carga
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Registrar al usuario
       await _auth.signUpWithEmailPassword(
         _emailController.text,
         _pwController.text,
       );
-      // Optionally, navigate to the next page after successful registration
+
+      // Remover el indicador de carga
+      if (mounted) {
+        Navigator.pop(context);
+        
+        // Navegar al HomePage y remover todas las rutas anteriores
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomePage(),
+          ),
+          (route) => false,
+        );
+      }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(e.toString()), // Show error message
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Dismiss dialog
-              child: Text("OK"),
-            ),
-          ],
-        ),
-      );
+      // Remover el indicador de carga si está presente
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      // Mostrar error
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Error de registro"),
+            content: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      }
     }
   } else {
     showDialog(
       context: context,
-      builder: (context) => const AlertDialog(
-        title: Text("Las contraseñas no coinciden"),
+      builder: (context) => AlertDialog(
+        title: const Text("Las contraseñas no coinciden"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
       ),
     );
   }

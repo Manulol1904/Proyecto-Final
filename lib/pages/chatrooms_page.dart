@@ -15,9 +15,17 @@ class _ChatRoomsPageState extends State<ChatRoomsPage> {
   String _searchQuery = '';
   List<Map<String, dynamic>> _users = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsers(); // Fetch users when the widget is initialized
+  }
+
   Future<void> _fetchUsers() async {
     final userSnapshots = await FirebaseFirestore.instance.collection('Users').get();
-    _users = userSnapshots.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    setState(() {
+      _users = userSnapshots.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    });
   }
 
   Widget _buildSeparator() {
@@ -38,109 +46,91 @@ class _ChatRoomsPageState extends State<ChatRoomsPage> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.grey,
       ),
-      body: FutureBuilder(
-        future: _fetchUsers(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            // Show a loading spinner while fetching users
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text("Error al cargar los usuarios: ${snapshot.error}"));
-          }
-
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Buscar chat...',
-                    filled: true,
-                    fillColor: Theme.of(context).primaryColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                  onSubmitted: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Buscar chat...',
+                filled: true,
+                fillColor: Theme.of(context).primaryColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
                 ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
               ),
-              _buildSeparator(),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: _authService.getChatRoomsForCurrentUser(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(child: Text("Error: ${snapshot.error}"));
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(child: Text("No hay chats."));
-                    }
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+          _buildSeparator(),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _authService.getChatRoomsForCurrentUser(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text("No hay chats."));
+                }
 
-                    final chatRooms = snapshot.data!.docs;
-                    final filteredChatRooms = chatRooms.where((doc) {
-                      var chatRoom = doc.data() as Map<String, dynamic>;
-                      var userIds = chatRoom['UserIds'] as List<dynamic>;
-                      var receiverId = userIds.firstWhere((id) => id != _authService.getCurrentUser()!.uid);
-                      var userData = _users.firstWhere((user) => user['uid'] == receiverId, orElse: () => {});
-                      return _isMatch(userData);
-                    }).toList();
+                final chatRooms = snapshot.data!.docs;
+                final filteredChatRooms = chatRooms.where((doc) {
+                  var chatRoom = doc.data() as Map<String, dynamic>;
+                  var userIds = chatRoom['UserIds'] as List<dynamic>;
+                  var receiverId = userIds.firstWhere((id) => id != _authService.getCurrentUser()!.uid);
+                  var userData = _users.firstWhere((user) => user['uid'] == receiverId, orElse: () => {});
+                  return _isMatch(userData);
+                }).toList();
 
-                    return ListView.separated(
-                      itemCount: filteredChatRooms.length,
-                      itemBuilder: (context, index) {
-                        var chatRoom = filteredChatRooms[index].data() as Map<String, dynamic>;
-                        var userIds = chatRoom['UserIds'] as List<dynamic>;
-                        var receiverId = userIds.firstWhere((id) => id != _authService.getCurrentUser()!.uid);
-                        var userData = _users.firstWhere(
-                          (user) => user['uid'] == receiverId,
-                          orElse: () => {},
-                        );
+                return ListView.separated(
+                  itemCount: filteredChatRooms.length,
+                  itemBuilder: (context, index) {
+                    var chatRoom = filteredChatRooms[index].data() as Map<String, dynamic>;
+                    var userIds = chatRoom['UserIds'] as List<dynamic>;
+                    var receiverId = userIds.firstWhere((id) => id != _authService.getCurrentUser()!.uid);
+                    var userData = _users.firstWhere(
+                      (user) => user['uid'] == receiverId,
+                      orElse: () => {},
+                    );
 
-                        return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: ListTile(
-                            title: userData.isNotEmpty
-                                ? Text('${userData['firstName']} ${userData['lastName']}')
-                                : const Text('Usuario no encontrado'),
-                            onTap: () {
-                              if (userData.isNotEmpty) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ChatPage(
-                                      receiverEmail: userData['email'],
-                                      receiverID: receiverId,
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        );
-                      },
-                      separatorBuilder: (context, index) => const SizedBox(height: 8),
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: ListTile(
+                        title: userData.isNotEmpty
+                            ? Text('${userData['firstName']} ${userData['lastName']}')
+                            : const Text('Usuario no encontrado'),
+                        onTap: () {
+                          if (userData.isNotEmpty) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatPage(
+                                  receiverEmail: userData['email'],
+                                  receiverID: receiverId,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     );
                   },
-                ),
-              ),
-            ],
-          );
-        },
+                  separatorBuilder: (context, index) => const SizedBox(height: 8),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

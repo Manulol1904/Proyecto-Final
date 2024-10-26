@@ -39,82 +39,84 @@ class _StudentPageState extends State<StudentPage> {
   }
 
   Widget _buildUserList() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Theme.of(context).primaryColor,
-              hintText: 'Buscar tutor',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+  return Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Theme.of(context).primaryColor,
+            hintText: 'Buscar tutor',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide.none,
             ),
-            onChanged: (value) {
-              setState(() {
-                searchQuery = value.toLowerCase();
-              });
-            },
+            contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
           ),
+          onChanged: (value) {
+            setState(() {
+              searchQuery = value.toLowerCase();
+            });
+          },
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildFilterChip('All'),
-              _buildFilterChip('Matemáticas'),
-              _buildFilterChip('Inglés'),
-              _buildFilterChip('Física'),
-            ],
-          ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildFilterChip('All'),
+            _buildFilterChip('Matemáticas'),
+            _buildFilterChip('Inglés'),
+            _buildFilterChip('Física'),
+          ],
         ),
-        Expanded(
-         child: StreamBuilder(
-           stream: FirebaseFirestore.instance.collection('Users').snapshots(),
-    builder: (context, snapshot) {
-      if (snapshot.hasError) {
-        return const Text("Error");
-      }
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-        return const Text("No hay tutores disponibles.");
-      }
+      ),
+      Expanded(
+        child: StreamBuilder(
+          stream: FirebaseFirestore.instance.collection('Users').snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return const Text("Error");
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Text("No hay tutores disponibles.");
+            }
 
-      final tutorUsers = snapshot.data!.docs.where((doc) {
-        // Check if the user is a tutor
-        if (doc['rol'] != 'Tutor') return false;
+            final tutorUsers = snapshot.data!.docs.where((doc) {
+              // Check if the user is a tutor and has the firstName field
+              if (doc['rol'] != 'Tutor' || !doc.data().containsKey('firstName') || doc['firstName'].toString().trim().isEmpty) {
+              return false;
+                 }
 
-        // Check if the user's name matches the search query
-        final matchesSearchQuery = 
-            doc['firstName'].toString().toLowerCase().contains(searchQuery) ||
-            doc['lastName'].toString().toLowerCase().contains(searchQuery);
+              // Check if the user's name matches the search query
+              final matchesSearchQuery = 
+                  doc['firstName'].toString().toLowerCase().contains(searchQuery) ||
+                  doc['lastName'].toString().toLowerCase().contains(searchQuery);
 
-        // Check if the user's subject area matches the selected specialty
-        final matchesSpecialty = selectedSpecialty == 'All' ||
-            doc['subjectArea'].toString() == selectedSpecialty;
+              // Check if the user's subject area matches the selected specialty
+              final matchesSpecialty = selectedSpecialty == 'All' ||
+                  doc['subjectArea'].toString() == selectedSpecialty;
 
-        // Return true if both conditions are met
-        return matchesSearchQuery && matchesSpecialty;
-      }).toList();
+              // Return true if both conditions are met
+              return matchesSearchQuery && matchesSpecialty;
+            }).toList();
 
-      return ListView(
-        children: tutorUsers.map<Widget>((doc) => _buildUserListItem(doc.data(), context)).toList(),
-      );
-    },
-  ),
-),
+            return ListView(
+              children: tutorUsers.map<Widget>((doc) => _buildUserListItem(doc.data(), context)).toList(),
+            );
+          },
+        ),
+      ),
+    ],
+  );
+}
 
-      ],
-    );
-  }
 
   Widget _buildFilterChip(String specialty) {
     return Padding(

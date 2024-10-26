@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:tutorias_estudiantes/pages/alltutories_page.dart';
 import 'package:tutorias_estudiantes/pages/chatrooms_page.dart';
+import 'package:tutorias_estudiantes/pages/login_page.dart';
 import 'package:tutorias_estudiantes/pages/tutoringsession_page.dart';
 import 'package:tutorias_estudiantes/pages/userprofle_page.dart';
 import 'package:tutorias_estudiantes/services/auth/auth_service.dart';
@@ -41,9 +42,44 @@ class _MyDrawerState extends State<MyDrawer> {
     });
   }
 
-  void logout() {
-    _authService.signOut();
+ void logout() async {
+    try {
+      Navigator.pop(context);
+      
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      await _authService.signOut();
+
+      if (mounted) {
+        Navigator.pop(context); // Remove loading indicator
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginPage(onTap: () {}),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); 
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cerrar sesión: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -71,6 +71,8 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
     DocumentReference newSessionRef = FirebaseFirestore.instance.collection('TutoringSessions').doc();
 
     await newSessionRef.set({
+      'isRated' : false,
+      'rating' : 0,
       'tutoringId': newSessionRef.id,
       'studentName': _studentName,
       'studentUid': widget.solicitanteUid,

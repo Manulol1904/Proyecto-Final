@@ -52,15 +52,14 @@ class Authservice {
   }
 
   // Iniciar sesión
-  Future<UserCredential> signInWithEmailPassword(String email, String password) async {
-    try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email, 
-        password: password
-      );
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      throw Exception(e.code);
+  Future<void> signInWithEmailPassword(String email, String password) async {
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    // Ensure user is signed in
+    if (userCredential.user == null) {
+      throw Exception("Error during sign in");
     }
   }
 
@@ -145,11 +144,8 @@ class Authservice {
   // Cerrar sesión
 Future<void> signOut() async {
   try {
-    print("Intentando cerrar sesión...");
     await _auth.signOut();
-    print("Sesión cerrada con éxito.");
   } catch (e) {
-    print("Error al cerrar sesión: $e");
     throw Exception("Error al cerrar sesión: $e");
   }
 }

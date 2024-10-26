@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:tutorias_estudiantes/pages/home_page.dart';
 
 class AccountPage extends StatefulWidget {
@@ -131,19 +132,19 @@ class _AccountPageState extends State<AccountPage> {
     _studentIdController.dispose();
     super.dispose();
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Actualizar Información'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.grey,
-        elevation: 0,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Actualizar Información'),
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.grey,
+      elevation: 0,
+    ),
+    body: _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,6 +161,11 @@ class _AccountPageState extends State<AccountPage> {
                         borderSide: BorderSide.none,
                       ),
                     ),
+                     // Agregar inputFormatters
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
+                      LengthLimitingTextInputFormatter(30), // Limitar a 30 caracteres
+                    ],
                   ),
                   const SizedBox(height: 20),
                   const Text('Apellidos', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -174,6 +180,11 @@ class _AccountPageState extends State<AccountPage> {
                         borderSide: BorderSide.none,
                       ),
                     ),
+                    // Agregar inputFormatters
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
+                      LengthLimitingTextInputFormatter(30), // Limitar a 30 caracteres
+                    ],
                   ),
                   const SizedBox(height: 20),
 
@@ -191,6 +202,11 @@ class _AccountPageState extends State<AccountPage> {
                           borderSide: BorderSide.none,
                         ),
                       ),
+                      // Agregar inputFormatters
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly, // Solo permite dígitos
+                        LengthLimitingTextInputFormatter(30), // Limitar a 30 caracteres si es necesario
+                      ],
                     ),
                     const SizedBox(height: 20),
                     const Text('Carrera', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -204,7 +220,7 @@ class _AccountPageState extends State<AccountPage> {
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
-                          _selectedCareer = value; // Este valor debe ser uno de los elementos de la lista
+                          _selectedCareer = value;
                         });
                       },
                       decoration: InputDecoration(
@@ -232,7 +248,7 @@ class _AccountPageState extends State<AccountPage> {
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
-                          _selectedSubject = value; // Este valor debe ser uno de los elementos de la lista
+                          _selectedSubject = value;
                         });
                       },
                       decoration: InputDecoration(
@@ -251,7 +267,7 @@ class _AccountPageState extends State<AccountPage> {
                   Center(
                     child: ElevatedButton(
                       onPressed: _updateUserInfo,
-                      child: const Text('Guardar', style: TextStyle(fontSize: 20, color: Colors.white),),
+                      child: const Text('Guardar', style: TextStyle(fontSize: 20, color: Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         foregroundColor: Colors.grey,
@@ -261,6 +277,8 @@ class _AccountPageState extends State<AccountPage> {
                 ],
               ),
             ),
-    );
-  }
+          ),
+  );
+}
+
 }

@@ -15,27 +15,34 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
   double? _rating;
 
   Future<void> _submitRating() async {
-    if (_rating != null) {
-      try {
-        await FirebaseFirestore.instance
-            .collection('TutoringSessions')
-            .doc(widget.session.tutoringId)
-            .update({
-          'rating': _rating,
-          'isRated': true, // Update isRated to true after submitting rating
-        });
+  // Check if the rating is zero
+  if (_rating != null && _rating! > 0) {
+    try {
+      await FirebaseFirestore.instance
+          .collection('TutoringSessions')
+          .doc(widget.session.tutoringId)
+          .update({
+        'rating': _rating,
+        'isRated': true, // Update isRated to true after submitting rating
+      });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Calificación enviada: $_rating')),
-        );
-        Navigator.pop(context); // Go back after rating
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al enviar la calificación: $e')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Calificación enviada: $_rating')),
+      );
+      Navigator.pop(context); // Go back after rating
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al enviar la calificación: $e')),
+      );
     }
+  } else {
+    // Show a Snackbar if the rating is zero
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('No se puede enviar una calificación de cero.')),
+    );
   }
+}
+
 
   @override
   void initState() {
@@ -120,9 +127,9 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
                 // Slider
                 Slider(
                   value: _rating ?? 1,
-                  min: 1,
+                  min: 0,
                   max: 5,
-                  divisions: 4,
+                  divisions: 5,
                   activeColor: Theme.of(context).primaryColor,
                   label: _rating?.toString(),
                   onChanged: (value) {
