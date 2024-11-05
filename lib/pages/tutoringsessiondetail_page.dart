@@ -13,42 +13,45 @@ class TutoringSessionDetailPage extends StatefulWidget {
 
 class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
   double? _rating;
+  double? _improvementRating;
+  String _feedbackText = "";
 
   Future<void> _submitRating() async {
-  // Check if the rating is zero
-  if (_rating != null && _rating! > 0) {
-    try {
-      await FirebaseFirestore.instance
-          .collection('TutoringSessions')
-          .doc(widget.session.tutoringId)
-          .update({
-        'rating': _rating,
-        'isRated': true, // Update isRated to true after submitting rating
-      });
+    // Check if the ratings are valid
+    if (_rating != null && _rating! > 0 && _improvementRating != null && _improvementRating! > 0) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('TutoringSessions')
+            .doc(widget.session.tutoringId)
+            .update({
+          'rating': _rating,
+          'improvementRating': _improvementRating,
+          'feedback': _feedbackText,
+          'isRated': true, // Update isRated to true after submitting rating
+        });
 
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Calificación enviada: $_rating, Mejora: $_improvementRating')),
+        );
+        Navigator.pop(context); // Go back after rating
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al enviar la calificación: $e')),
+        );
+      }
+    } else {
+      // Show a Snackbar if any rating is zero
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Calificación enviada: $_rating')),
-      );
-      Navigator.pop(context); // Go back after rating
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al enviar la calificación: $e')),
+        const SnackBar(content: Text('No se puede enviar una calificación o mejora de cero.')),
       );
     }
-  } else {
-    // Show a Snackbar if the rating is zero
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No se puede enviar una calificación de cero.')),
-    );
   }
-}
-
 
   @override
   void initState() {
     super.initState();
-    // Initialize _rating with the current session rating
     _rating = widget.session.rating;
+    _improvementRating = 1; // Initial value for improvement rating
   }
 
   @override
@@ -76,22 +79,11 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
                       ),
                 ),
               ),
-              // Fecha (independiente)
+              // Fecha y Hora
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10.0),
                 child: Text(
-                  'Fecha: ${widget.session.scheduledDate}',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 18,
-                  ),
-                ),
-              ),
-              // Hora (independiente)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: Text(
-                  'Hora: ${widget.session.scheduledTime}',
+                  'Fecha: ${widget.session.scheduledDate}\nHora: ${widget.session.scheduledTime}',
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 18,
@@ -110,21 +102,18 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
                 ),
               ),
               const SizedBox(height: 30),
-              // Calificación label
+              // Calificación de la sesión
               const Text(
-                'Calificación:',
+                'Calificación de la sesión:',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              // Check if the session is already rated
               if (widget.session.isRated) ...[
-                // Show the existing rating
                 Text(
                   'Calificación actual: ${widget.session.rating}',
                   style: const TextStyle(fontSize: 18, color: Colors.green),
                 ),
               ] else ...[
-                // Slider
                 Slider(
                   value: _rating ?? 1,
                   min: 0,
@@ -139,8 +128,58 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
                   },
                 ),
               ],
+              const SizedBox(height: 20),
+              // Calificación de la mejora de la duda
+              const Text(
+                'Mejora de la duda:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Slider(
+                value: _improvementRating ?? 1,
+                min: 0,
+                max: 5,
+                divisions: 5,
+                activeColor: Theme.of(context).primaryColor,
+                label: _improvementRating?.toString(),
+                onChanged: (value) {
+                  setState(() {
+                    _improvementRating = value;
+                  });
+                },
+              ),
               const SizedBox(height: 30),
-              // Calificar button
+              // Cuadro de texto de retroalimentación
+              const Text(
+                'Comentarios adicionales:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                maxLength: 200,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Escribe tus comentarios (máximo 200 caracteres)',
+                  counterText: '', // Hide the default counter text
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _feedbackText = value;
+                  });
+                },
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${_feedbackText.length}/200',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              // Botón de Calificar
               if (!widget.session.isRated) ...[
                 Center(
                   child: ElevatedButton.icon(
@@ -162,7 +201,7 @@ class _TutoringSessionDetailPageState extends State<TutoringSessionDetailPage> {
                   ),
                 ),
               ],
-              const SizedBox(height: 50), // Spacer at the bottom for larger screens
+              const SizedBox(height: 50),
             ],
           ),
         ),

@@ -21,6 +21,16 @@ class ChatService {
     });
   }
 
+  Stream<QuerySnapshot> getMessagesByChatRoomID(String chatRoomID) {
+  return FirebaseFirestore.instance
+      .collection('chat_rooms')
+      .doc(chatRoomID)
+      .collection('messages')
+      .orderBy('timestamp', descending: false) // Ensure messages are ordered by timestamp
+      .snapshots();
+}
+
+
   // Función para generar ID de sala de chat
   String _getChatRoomID(String userID1, String userID2) {
     List<String> ids = [userID1, userID2];

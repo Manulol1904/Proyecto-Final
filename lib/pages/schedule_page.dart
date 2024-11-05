@@ -27,6 +27,7 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
   String _studentName = '';
   String _studentCareer = '';
   String _tutorName = '';
+  String _tutorSubjectArea = ''; // Nueva variable para el área de especialización del tutor
 
   @override
   void initState() {
@@ -47,6 +48,7 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
           _studentName = "${studentData['firstName']} ${studentData['lastName']}";
           _studentCareer = studentData['career'] ?? 'Carrera no disponible';
           _tutorName = "${tutorData['firstName']} ${tutorData['lastName']}";
+          _tutorSubjectArea = tutorData['subjectArea'] ?? 'Área no disponible'; // Obtener el área de especialización
           _isLoading = false;
         });
       }
@@ -58,54 +60,58 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
   }
 
   Future<void> _scheduleTutoringSession() async {
-  try {
-    // Asegúrate de que el usuario esté autenticado
-    User?  user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Debes estar autenticado para agendar una tutoría.')),
+        );
+        return;
+      }
+
+       // Generar o obtener el ID de la sala de chat entre estudiante y tutor
+      String chatRoomId = '${widget.solicitanteUid}_${widget.receptorUid}';
+
+      DocumentReference newSessionRef = FirebaseFirestore.instance.collection('TutoringSessions').doc();
+
+      await newSessionRef.set({
+        'isRated': false,
+        'rating': 0,
+        'improvementRating' : 0,
+        'feedback' : "",
+        'tutoringId': newSessionRef.id,
+        'studentName': _studentName,
+        'studentUid': widget.solicitanteUid,
+        'studentCareer': _studentCareer,
+        'tutorName': _tutorName,
+        'tutorUid': widget.receptorUid,
+        'type': _tutorSubjectArea, // Añadir el área de especialización
+        'scheduledDate': _dateController.text,
+        'scheduledTime': _timeController.text,
+        'timestamp': Timestamp.now(),
+        'chatRoomId': chatRoomId, // Añadir el ID de la sala de chat
+      });
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'receiverID': widget.solicitanteUid,
+        'type': 'tutoring',
+        'isRead': false,
+        'timestamp': Timestamp.now(),
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debes estar autenticado para agendar una tutoría.')),
+        const SnackBar(content: Text('Tutoría agendada correctamente')),
       );
-      return;
+
+      Navigator.pop(context);
+    } catch (e, stackTrace) {
+      print("Error: $e");
+      print("StackTrace: $stackTrace");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al agendar la tutoría: ${e.toString()}')),
+      );
     }
-
-    DocumentReference newSessionRef = FirebaseFirestore.instance.collection('TutoringSessions').doc();
-
-    await newSessionRef.set({
-      'isRated' : false,
-      'rating' : 0,
-      'tutoringId': newSessionRef.id,
-      'studentName': _studentName,
-      'studentUid': widget.solicitanteUid,
-      'studentCareer': _studentCareer,
-      'tutorName': _tutorName,
-      'tutorUid': widget.receptorUid,
-      'scheduledDate': _dateController.text,
-      'scheduledTime': _timeController.text,
-      'timestamp': Timestamp.now(),
-    });
-
-    await FirebaseFirestore.instance.collection('notifications').add({
-      'receiverID': widget.solicitanteUid, // ID del estudiante que recibirá la notificación
-      'type': 'tutoring', // Tipo de notificación
-      'isRead': false, // No leída al crearse
-      'timestamp': Timestamp.now(),
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Tutoría agendada correctamente')),
-    );
-
-    Navigator.pop(context);
-  } catch (e, stackTrace) {
-    print("Error: $e"); // Imprimir el error
-    print("StackTrace: $stackTrace"); // Imprimir la traza de pila
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al agendar la tutoría: ${e.toString()}')),
-    );
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -122,13 +128,13 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center( // Centrar la tarjeta
+                  Center(
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0), // Margen lateral
+                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -138,6 +144,7 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
                             _buildInfoText('Carrera:', _studentCareer),
                             const SizedBox(height: 20),
                             _buildInfoText('Tutor:', _tutorName),
+                            _buildInfoText('Área de especialización:', _tutorSubjectArea), // Mostrar el área de especialización
                           ],
                         ),
                       ),
@@ -148,13 +155,13 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
                   const SizedBox(height: 20),
                   _buildDateTimeInput('Hora de Tutoría', _timeController, false),
                   const SizedBox(height: 30),
-                  Center( // Centrando el botón
+                  Center(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
-                        backgroundColor: Theme.of(context).primaryColor, // Color de fondo del botón
+                        backgroundColor: Theme.of(context).primaryColor,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-                        elevation: 0, // Sin sombra para un look más limpio
+                        elevation: 0,
                       ),
                       onPressed: _scheduleTutoringSession,
                       child: const Text(
@@ -192,12 +199,12 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
         Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         TextField(
           controller: controller,
-          readOnly: true, // Hacer el campo solo lectura para evitar edición directa
+          readOnly: true,
           decoration: InputDecoration(
             hintText: isDate ? 'Seleccione la fecha' : 'Seleccione la hora',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Theme.of(context).primaryColor), // Borde del campo
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
             ),
             suffixIcon: Icon(isDate ? Icons.calendar_today : Icons.access_time, color: Theme.of(context).primaryColor),
           ),

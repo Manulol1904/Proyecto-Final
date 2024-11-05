@@ -31,6 +31,7 @@ class UserDetailPage extends StatelessWidget {
     required String studentEmail,
     required String studentCareer,
     required String studentId,
+    required String necesidadEspecifica,
     required BuildContext context,
   }) async {
     CollectionReference solicitudes = FirebaseFirestore.instance.collection('solicitudes');
@@ -47,6 +48,7 @@ class UserDetailPage extends StatelessWidget {
         'receptoruid': receiverID,
         'tutorName': '$firstName $lastName',
         'tutorUid': receiverID,
+        'necesidadEspecifica': necesidadEspecifica, // Añadir necesidad específica
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('¡Solicitud de tutoría creada con éxito!')),
@@ -136,7 +138,8 @@ class UserDetailPage extends StatelessWidget {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        createSolicitud(
+                        _showSolicitudDialog(
+                          context: context,
                           currentUserEmail: currentUserEmail,
                           currentUserID: currentUserID,
                           receiverEmail: receiverEmail,
@@ -145,7 +148,6 @@ class UserDetailPage extends StatelessWidget {
                           studentEmail: studentEmail,
                           studentCareer: studentCareer,
                           studentId: studentId,
-                          context: context,
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -167,6 +169,66 @@ class UserDetailPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showSolicitudDialog({
+    required BuildContext context,
+    required String currentUserEmail,
+    required String currentUserID,
+    required String receiverEmail,
+    required String receiverID,
+    required String studentName,
+    required String studentEmail,
+    required String studentCareer,
+    required String studentId,
+  }) {
+    final TextEditingController necesidadController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Especificar Necesidad'),
+          content: TextField(
+            controller: necesidadController,
+            decoration: const InputDecoration(hintText: 'Describe tu necesidad específica...'),
+            maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                String necesidadEspecifica = necesidadController.text;
+                if (necesidadEspecifica.isNotEmpty) {
+                  createSolicitud(
+                    currentUserEmail: currentUserEmail,
+                    currentUserID: currentUserID,
+                    receiverEmail: receiverEmail,
+                    receiverID: receiverID,
+                    studentName: studentName,
+                    studentEmail: studentEmail,
+                    studentCareer: studentCareer,
+                    studentId: studentId,
+                    necesidadEspecifica: necesidadEspecifica, // Añadir necesidad específica
+                    context: context,
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Por favor, ingresa una necesidad específica.')),
+                  );
+                }
+              },
+              child: const Text('Enviar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

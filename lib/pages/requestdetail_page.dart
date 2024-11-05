@@ -10,6 +10,7 @@ class RequestDetailPage extends StatelessWidget {
   final String? receptorUid;
   final DateTime? date;
   final String requestId;
+  final String necesidad;
 
   const RequestDetailPage({
     required this.solicitante,
@@ -18,6 +19,7 @@ class RequestDetailPage extends StatelessWidget {
     required this.receptorUid,
     required this.date,
     required this.requestId,
+    required this.necesidad,
   });
 
   @override
@@ -73,6 +75,11 @@ class RequestDetailPage extends StatelessWidget {
                   icon: Icons.badge,
                   label: "ID de estudiante:",
                   value: studentId,
+                ),
+                _buildInfoCard(
+                  icon: Icons.question_answer,
+                  label: "Duda:",
+                  value: necesidad,
                 ),
                 _buildInfoCard(
                   icon: Icons.person_outline,

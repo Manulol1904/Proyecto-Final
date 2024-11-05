@@ -50,6 +50,7 @@ class RequestsPage extends StatelessWidget {
               var studentEmail = request['solicitante'];
               var studentCareer = request['solicitanteCarrera'];
               var date = (request['fecha'] as Timestamp).toDate();
+              var necesidad = request['necesidadEspecifica'];
               var formattedDate = "${date.day}/${date.month}/${date.year}";
               var requestId = sortedRequests[index].id;
 
@@ -115,6 +116,7 @@ class RequestsPage extends StatelessWidget {
                           receptorUid: request['receptoruid'],
                           date: date,
                           requestId: requestId,
+                          necesidad: necesidad,
                         ),
                       ),
                     );

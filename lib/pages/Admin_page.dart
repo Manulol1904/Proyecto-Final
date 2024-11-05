@@ -35,6 +35,7 @@ class _AllUsersPageState extends State<AllUsersPage> {
           : null,
       body: Column(
         children: [
+          // Barra de búsqueda
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -57,6 +58,7 @@ class _AllUsersPageState extends State<AllUsersPage> {
               },
             ),
           ),
+          // Chips de filtro
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: SingleChildScrollView(
@@ -97,7 +99,6 @@ class _AllUsersPageState extends State<AllUsersPage> {
                   return matchesSearchQuery && matchesRole && isNotCurrentUser;
                 }).toList();
 
-                // Agregar el botón de "Agregar Usuario" al inicio de la lista
                 return ListView(
                   children: [
                     _buildAddUserCard(context), // Tarjeta "Agregar Usuario"
@@ -174,9 +175,12 @@ class _AllUsersPageState extends State<AllUsersPage> {
     );
   }
 
-
   // Mostrar el diálogo con la información del usuario
   void _showUserInfoDialog(Map<String, dynamic> userData, BuildContext context) {
+    final TextEditingController firstNameController = TextEditingController(text: userData['firstName']);
+    final TextEditingController lastNameController = TextEditingController(text: userData['lastName']);
+    final TextEditingController emailController = TextEditingController(text: userData['email']);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -185,13 +189,18 @@ class _AllUsersPageState extends State<AllUsersPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Nombre: ${userData['firstName']} ${userData['lastName']}"),
-              Text("Email: ${userData['email']}"),
-              Text("Rol: ${userData['rol']}"),
-              if (userData['rol'] == 'Estudiante')
-                Text("Carrera: ${userData['career']}"),
-              if (userData['rol'] == 'Tutor')
-                Text("Área de Tutoría: ${userData['subjectArea']}"),
+              TextField(
+                controller: firstNameController,
+                decoration: const InputDecoration(labelText: "Nombre"),
+              ),
+              TextField(
+                controller: lastNameController,
+                decoration: const InputDecoration(labelText: "Apellido"),
+              ),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: "Email"),
+              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _deleteUser(userData['uid']),
@@ -203,6 +212,13 @@ class _AllUsersPageState extends State<AllUsersPage> {
             ],
           ),
           actions: [
+            ElevatedButton(
+              onPressed: () {
+                _updateUser(userData['uid'], firstNameController.text, lastNameController.text, emailController.text);
+                Navigator.of(context).pop();
+              },
+              child: const Text("Guardar Cambios"),
+            ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text("Cerrar"),
@@ -213,16 +229,40 @@ class _AllUsersPageState extends State<AllUsersPage> {
     );
   }
 
+  // Actualizar usuario y registrar acción en AdminActions
+  Future<void> _updateUser(String uid, String firstName, String lastName, String email) async {
+    try {
+      await FirebaseFirestore.instance.collection('Users').doc(uid).update({
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+      });
+
+      // Registrar la acción en Firestore
+      await FirebaseFirestore.instance.collection('AdminActions').add({
+        'actionType': 'Actualización de Usuario',
+        'targetId': uid,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print("Error al actualizar usuario: $e");
+    }
+  }
+
   // Eliminar usuario
   Future<void> _deleteUser(String uid) async {
     try {
-      // Eliminar de Firestore
       await FirebaseFirestore.instance.collection('Users').doc(uid).delete();
-      
-      // Eliminar de la autenticación
       await _authservice.deleteUser(uid);
 
-      Navigator.of(context).pop(); // Cerrar diálogo después de eliminar
+      // Registrar el evento en Firestore
+      await FirebaseFirestore.instance.collection('AdminActions').add({
+        'actionType': 'Eliminación de Usuario',
+        'targetId': uid,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      Navigator.of(context).pop();
     } catch (e) {
       print("Error al eliminar usuario: $e");
     }

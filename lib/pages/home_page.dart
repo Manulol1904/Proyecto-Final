@@ -6,10 +6,10 @@ import 'package:tutorias_estudiantes/components/my_drawer.dart';
 import 'package:tutorias_estudiantes/components/notifications.dart';
 import 'package:tutorias_estudiantes/pages/admin_page.dart';
 import 'package:tutorias_estudiantes/pages/account_page.dart';
-import 'package:tutorias_estudiantes/pages/request_page.dart'; // Importar RequestsPage
+import 'package:tutorias_estudiantes/pages/adminactions_page.dart';
+import 'package:tutorias_estudiantes/pages/request_page.dart';
 import 'package:tutorias_estudiantes/pages/student_page.dart';
 import 'package:tutorias_estudiantes/services/auth/auth_service.dart';
- // Importar el widget de notificaciones
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,77 +24,71 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _checkUserInfo(); // Verifica la información del usuario al iniciar
+    _checkUserInfo();
   }
 
   Future<String?> _getUserRole() async {
     return await _authservice.getUserRole();
   }
 
-  // Verifica si el usuario tiene un nombre
   Future<void> _checkUserInfo() async {
-  // Esperar un breve momento para asegurar que la página esté completamente montada
-  await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
   
-  if (!mounted) return;
+    if (!mounted) return;
 
-  User? user = _authservice.getCurrentUser();
-  if (user != null) {
-    try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(user.uid)
-          .get();
-          
-      if (!mounted) return;
+    User? user = _authservice.getCurrentUser();
+    if (user != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('Users')
+            .doc(user.uid)
+            .get();
+            
+        if (!mounted) return;
 
-      if (userDoc.exists) {
-        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-        if (userData['firstName'] == null || userData['firstName'].isEmpty) {
-          // Verificar si el contexto está disponible antes de mostrar el diálogo
-          if (mounted && context.mounted) {
-            _showUpdateDialog();
+        if (userDoc.exists) {
+          Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+          if (userData['firstName'] == null || userData['firstName'].isEmpty) {
+            if (mounted && context.mounted) {
+              _showUpdateDialog();
+            }
           }
         }
+      } catch (e) {
+        debugPrint("Error checking user info: $e");
       }
-    } catch (e) {
-      // Manejar cualquier error que pueda ocurrir
-      debugPrint("Error checking user info: $e");
     }
   }
-}
 
-  // Muestra un popup para que el usuario actualice su información
   void _showUpdateDialog() async {
-  String userRole = (await _authservice.getUserRole()) as String? ?? ''; // Wait for user role
-  showDialog(
-    context: context,
-    barrierDismissible: false, // Prevent dismissing by tapping outside
-    builder: (BuildContext context) {
-      return WillPopScope(
-        onWillPop: () async {
-          return false; // Prevent dialog from being dismissed
-        },
-        child: AlertDialog(
-          title: const Text("Actualiza tus datos"),
-          content: const Text("Parece que no tienes tu nombre registrado. Por favor, actualiza tu información."),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("Actualizar"),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AccountPage(userRole: userRole)),
-                );
-              },
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
+    String userRole = (await _authservice.getUserRole()) ?? '';
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async {
+            return false;
+          },
+          child: AlertDialog(
+            title: const Text("Actualiza tus datos"),
+            content: const Text("Parece que no tienes tu nombre registrado. Por favor, actualiza tu información."),
+            actions: <Widget>[
+              TextButton(
+                child: const Text("Actualizar"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AccountPage(userRole: userRole)),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,10 +104,24 @@ class _HomePageState extends State<HomePage> {
             future: _getUserRole(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox(); // Si está cargando, mostrar nada
+                return const SizedBox();
               }
               if (snapshot.hasData) {
-                return NotificationIcon(userRole: snapshot.data ?? ''); // Pasar el rol del usuario al ícono de notificaciones
+                if (snapshot.data == 'Admin') {
+                  // Botón para AdminActionsPage si el usuario es admin
+                  return IconButton(
+                    icon: const Icon(Icons.settings),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AdminActionsPage()),
+                      );
+                    },
+                  );
+                } else {
+                  // Icono de notificaciones para otros roles
+                  return NotificationIcon(userRole: snapshot.data ?? '');
+                }
               }
               return const SizedBox();
             },
@@ -132,11 +140,11 @@ class _HomePageState extends State<HomePage> {
           }
 
           if (snapshot.data == 'Admin') {
-            return const AllUsersPage(showAppBar: false); // Pasar showAppBar como false para ocultar el AppBar
+            return const AllUsersPage(showAppBar: false);
           } if (snapshot.data == 'Tutor') {
-            return RequestsPage(showAppBar: false); // Pasar showAppBar como false para ocultar el AppBar
+            return RequestsPage(showAppBar: false);
           } if (snapshot.data == 'Estudiante') {
-            return const StudentPage(showAppBar: false); // Pasar showAppBar como false para ocultar el AppBar
+            return const StudentPage(showAppBar: false);
           } else {
             return const StudentPage(showAppBar: false);
           }
