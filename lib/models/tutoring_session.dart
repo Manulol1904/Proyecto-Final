@@ -10,8 +10,10 @@ class TutoringSession {
   final String tutorName;
   final String tutorUid;
   final Timestamp timestamp;
-  final double? rating; // New field for the rating
-  final bool isRated; // New field to check if rated
+  final double? rating; // Rating for the session
+  final bool isRated; // Flag to check if rated
+  final double? improvementRating; // Rating for improvement
+  final String feedback; // Feedback text for the session
 
   TutoringSession({
     required this.tutoringId,
@@ -25,6 +27,8 @@ class TutoringSession {
     required this.timestamp,
     this.rating, // Optional, can be null if not rated yet
     this.isRated = false, // Default to false
+    this.improvementRating, // Optional, can be null if not rated yet
+    this.feedback = '', // Default to empty string if no feedback
   });
 
   factory TutoringSession.fromMap(Map<String, dynamic> data) {
@@ -37,9 +41,11 @@ class TutoringSession {
       studentUid: data['studentUid'],
       tutorName: data['tutorName'],
       tutorUid: data['tutorUid'],
-       timestamp: data['timestamp'],
+      timestamp: data['timestamp'],
       rating: data['rating']?.toDouble(), // Convert to double if it exists
       isRated: data['isRated'] ?? false, // Default to false if not present
+      improvementRating: data['improvementRating']?.toDouble(), // Convert to double if exists
+      feedback: data['feedback'] ?? '', // Default to empty if not present
     );
   }
 
@@ -56,7 +62,8 @@ class TutoringSession {
       'timestamp': timestamp,
       'rating': rating, // Add rating to map
       'isRated': isRated, // Add isRated to map
+      'improvementRating': improvementRating, // Add improvementRating to map
+      'feedback': feedback, // Add feedback to map
     };
   }
 }
-

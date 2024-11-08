@@ -18,13 +18,43 @@ class Authservice {
 
   // Obtener el rol del usuario
   Future<String?> getUserRole() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
+  User? user = _auth.currentUser;  // Obtener el usuario actual
+
+  if (user != null) {  // Verificar que el usuario esté autenticado
+    try {
       DocumentSnapshot doc = await _firestore.collection('Users').doc(user.uid).get();
-      return doc['rol'];
+      if (doc.exists) {
+        return doc['rol'];  // Devolver el rol si el documento existe
+      } else {
+        throw Exception("El documento del usuario no existe en Firestore.");
+      }
+    } catch (e) {
+      throw Exception("Error al obtener el rol del usuario: $e");
     }
-    return null;
+  } else {
+    throw Exception("No hay usuario autenticado.");
   }
+}
+
+Future<String> fetchUserRole() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    try {
+      DocumentSnapshot doc = await _firestore.collection('Users').doc(user.uid).get();
+      if (doc.exists) {
+        return doc['rol'];  // Return the role if document exists
+      } else {
+        throw Exception("The user document does not exist.");
+      }
+    } catch (e) {
+      throw Exception("Error fetching user role: $e");
+    }
+  } else {
+    throw Exception("No authenticated user found.");
+  }
+}
+
+
 
   // Obtener las salas de chat para el usuario actual
   Stream<QuerySnapshot> getChatRoomsForCurrentUser() {

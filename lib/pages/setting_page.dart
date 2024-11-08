@@ -4,18 +4,21 @@ import 'package:provider/provider.dart';
 import 'package:tutorias_estudiantes/themes/theme_provider.dart';
 
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
+final bool showAppBar;
+
+  const SettingsPage({Key? key, this.showAppBar = true}) : super(key: key);
+  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: const Text("Configuraciones"),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.grey,
-        elevation: 0,
-        ),
+      appBar: showAppBar
+          ? AppBar(
+              title: const Text('Todos los Usuarios'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            )
+          : null,
         body: Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.secondary,
@@ -34,6 +37,8 @@ class SettingsPage extends StatelessWidget {
               CupertinoSwitch(
                 value: Provider.of<ThemeProvider>(context, listen: false).isDarkMode, 
                 onChanged: (value) => Provider.of<ThemeProvider>(context, listen: false).toggleTheme(),
+                activeColor: const Color(0xFFF5CD84).withOpacity(0.8),
+                
                 ),
             ],
             ),

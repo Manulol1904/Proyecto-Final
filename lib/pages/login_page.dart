@@ -30,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(), // Replace with your actual home page widget
+          builder: (context) => const HomePage(), // Replace with your actual home page widget
         ),
       );
     }

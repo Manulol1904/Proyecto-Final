@@ -164,11 +164,12 @@ class RequestDetailPage extends StatelessWidget {
   Widget _buildInfoCard({required IconData icon, required String label, required String value}) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
+      color: const Color(0xFFF5CD84).withOpacity(0.6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        leading: Icon(icon, color: Colors.grey[700]),
+        leading: Icon(icon, color:const Color(0xFF11254B).withOpacity(0.9)),
         title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(value, style: const TextStyle(fontSize: 16)),
       ),

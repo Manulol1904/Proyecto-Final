@@ -55,8 +55,8 @@ class RequestsPage extends StatelessWidget {
               var requestId = sortedRequests[index].id;
 
               return Card(
-                elevation: 4,
                 margin: const EdgeInsets.symmetric(vertical: 10.0),
+                color: const Color(0xFFF5CD84).withOpacity(0.6),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15.0),
                 ),
@@ -67,7 +67,7 @@ class RequestsPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).colorScheme.inversePrimary,
                     ),
                   ),
                   subtitle: Padding(
@@ -75,28 +75,46 @@ class RequestsPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Correo: $studentEmail",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                          ),
+                        Row(
+                          children: [
+                            Icon(Icons.email, color: const Color(0xFF11254B).withOpacity(0.9), size: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              studentEmail,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context).colorScheme.inversePrimary,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 5),
-                        Text(
-                          "Carrera: $studentCareer",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                          ),
+                        Row(
+                          children: [
+                            Icon(Icons.school, color: const Color(0xFF11254B).withOpacity(0.9), size: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              studentCareer,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context).colorScheme.inversePrimary,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 5),
-                        Text(
-                          "Fecha: $formattedDate",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
-                          ),
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_today, color: const Color(0xFF11254B).withOpacity(0.9), size: 16),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Fecha: $formattedDate",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context).colorScheme.inversePrimary,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -116,7 +134,7 @@ class RequestsPage extends StatelessWidget {
                           receptorUid: request['receptoruid'],
                           date: date,
                           requestId: requestId,
-                          necesidad: necesidad,
+                          necesidad: necesidad
                         ),
                       ),
                     );

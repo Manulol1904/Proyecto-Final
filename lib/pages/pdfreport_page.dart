@@ -95,7 +95,7 @@ class _MonthlyReportPageState extends State<MonthlyReportPage> {
               pw.SizedBox(height: 10),
               pw.Text(
                 'Total de Tutorías: ${typeCounts.values.reduce((a, b) => a + b)}',
-                style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
+                style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
               ),
               pw.SizedBox(height: 20),
               pw.Text(
@@ -129,7 +129,7 @@ class _MonthlyReportPageState extends State<MonthlyReportPage> {
                   final double avgRating = entry.value['ratingSum'] / sessionCount;
                   return [tutorName, sessionCount, avgRating.toStringAsFixed(2)];
                 }).toList(),
-                cellStyle: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
+                cellStyle: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
                 headerStyle: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
                 cellAlignments: {
@@ -153,7 +153,7 @@ class _MonthlyReportPageState extends State<MonthlyReportPage> {
                   session['type'],
                   session['rating'].toString(),
                 ]).toList(),
-                cellStyle: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
+                cellStyle: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
                 headerStyle: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
                 cellAlignments: {

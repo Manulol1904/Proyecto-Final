@@ -27,6 +27,7 @@ class _AccountPageState extends State<AccountPage> {
   String? _selectedSubject; // Para el tutor
 
   bool _isLoading = true;
+  bool _isProfileUpdated = false;
 
   // Lista de carreras para los estudiantes
   final List<String> _careers = [
@@ -34,7 +35,6 @@ class _AccountPageState extends State<AccountPage> {
     'Medicina',
     'Derecho',
     'Administración de Empresas',
-    // Agrega más carreras según sea necesario
   ];
 
   // Lista de áreas de ciencias básicas para los tutores
@@ -43,7 +43,6 @@ class _AccountPageState extends State<AccountPage> {
     'Física',
     'Inglés',
     'Química',
-    // Agrega más áreas según sea necesario
   ];
 
   @override
@@ -68,7 +67,8 @@ class _AccountPageState extends State<AccountPage> {
         setState(() {
           _firstNameController.text = userData['firstName'] ?? '';
           _lastNameController.text = userData['lastName'] ?? '';
-          
+          _isProfileUpdated = userData['isProfileUpdated'] ?? false;
+
           if (widget.userRole == 'Tutor') {
             _selectedSubject = userData['subjectArea'];
           } else if (widget.userRole == 'Estudiante') {
@@ -116,7 +116,7 @@ class _AccountPageState extends State<AccountPage> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()), // Reemplazar con el HomePage actualizado
+        MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -132,69 +132,48 @@ class _AccountPageState extends State<AccountPage> {
     _studentIdController.dispose();
     super.dispose();
   }
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text('Actualizar Información'),
-      backgroundColor: Colors.transparent,
-      foregroundColor: Colors.grey,
-      elevation: 0,
-    ),
-    body: _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Nombres', style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextField(
-                    controller: _firstNameController,
-                    decoration: InputDecoration(
-                      hintText: 'Ingrese su nombre',
-                      filled: true,
-                      fillColor: Theme.of(context).primaryColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                     // Agregar inputFormatters
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
-                      LengthLimitingTextInputFormatter(30), // Limitar a 30 caracteres
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const Text('Apellidos', style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextField(
-                    controller: _lastNameController,
-                    decoration: InputDecoration(
-                      hintText: 'Ingrese su apellido',
-                      filled: true,
-                      fillColor: Theme.of(context).primaryColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    // Agregar inputFormatters
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]*$')),
-                      LengthLimitingTextInputFormatter(30), // Limitar a 30 caracteres
-                    ],
-                  ),
-                  const SizedBox(height: 20),
 
-                  // Campos específicos para estudiantes
-                  if (widget.userRole == 'Estudiante') ...[
-                    const Text('Código de Estudiante', style: TextStyle(fontWeight: FontWeight.bold)),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Actualizar Información'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.grey,
+        elevation: 0,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Nombres', style: TextStyle(fontWeight: FontWeight.bold)),
                     TextField(
-                      controller: _studentIdController,
+  controller: _firstNameController,
+  decoration: InputDecoration(
+    hintText: 'Ingrese su nombre',
+    filled: true,
+    fillColor: Theme.of(context).primaryColor,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10.0),
+      borderSide: BorderSide.none,
+    ),
+  ),
+  inputFormatters: [
+    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')), // Permite solo letras y espacios
+    LengthLimitingTextInputFormatter(30),
+  ],
+),
+
+                    const SizedBox(height: 20),
+                    const Text('Apellidos', style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextField(
+                      controller: _lastNameController,
                       decoration: InputDecoration(
-                        hintText: 'Ingrese su código de estudiante',
+                        hintText: 'Ingrese su apellido',
                         filled: true,
                         fillColor: Theme.of(context).primaryColor,
                         border: OutlineInputBorder(
@@ -202,83 +181,103 @@ Widget build(BuildContext context) {
                           borderSide: BorderSide.none,
                         ),
                       ),
-                      // Agregar inputFormatters
                       inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly, // Solo permite dígitos
-                        LengthLimitingTextInputFormatter(30), // Limitar a 30 caracteres si es necesario
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                        LengthLimitingTextInputFormatter(30),
                       ],
                     ),
                     const SizedBox(height: 20),
-                    const Text('Carrera', style: TextStyle(fontWeight: FontWeight.bold)),
-                    DropdownButtonFormField<String>(
-                      value: _selectedCareer,
-                      items: _careers.map((career) {
-                        return DropdownMenuItem<String>(
-                          value: career,
-                          child: Text(career),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedCareer = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Seleccione su carrera',
-                        filled: true,
-                        fillColor: Theme.of(context).primaryColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide.none,
+
+                    // Campos específicos para estudiantes
+                    if (widget.userRole == 'Estudiante' && !_isProfileUpdated) ...[
+                      const Text('Código de Estudiante', style: TextStyle(fontWeight: FontWeight.bold)),
+                      TextField(
+                        controller: _studentIdController,
+                        decoration: InputDecoration(
+                          hintText: 'Ingrese su código de estudiante',
+                          filled: true,
+                          fillColor: Theme.of(context).primaryColor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(30),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Carrera', style: TextStyle(fontWeight: FontWeight.bold)),
+                      DropdownButtonFormField<String>(
+                        value: _selectedCareer,
+                        items: _careers.map((career) {
+                          return DropdownMenuItem<String>(
+                            value: career,
+                            child: Text(career),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCareer = value;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Seleccione su carrera',
+                          filled: true,
+                          fillColor: Theme.of(context).primaryColor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    // Campos específicos para tutores
+                    if (widget.userRole == 'Tutor' && !_isProfileUpdated) ...[
+                      const Text('Área de Ciencias Básicas', style: TextStyle(fontWeight: FontWeight.bold)),
+                      DropdownButtonFormField<String>(
+                        value: _selectedSubject,
+                        items: _subjects.map((subject) {
+                          return DropdownMenuItem<String>(
+                            value: subject,
+                            child: Text(subject),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSubject = value;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Seleccione el área de tutorías',
+                          filled: true,
+                          fillColor: Theme.of(context).primaryColor,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 30),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _updateUserInfo,
+                        child: const Text('Guardar', style: TextStyle(fontSize: 20, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.grey,
                         ),
                       ),
                     ),
                   ],
-
-                  // Campos específicos para tutores
-                  if (widget.userRole == 'Tutor') ...[
-                    const Text('Área de Ciencias Básicas', style: TextStyle(fontWeight: FontWeight.bold)),
-                    DropdownButtonFormField<String>(
-                      value: _selectedSubject,
-                      items: _subjects.map((subject) {
-                        return DropdownMenuItem<String>(
-                          value: subject,
-                          child: Text(subject),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedSubject = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Seleccione el área de tutorías',
-                        filled: true,
-                        fillColor: Theme.of(context).primaryColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 30),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: _updateUserInfo,
-                      child: const Text('Guardar', style: TextStyle(fontSize: 20, color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.grey,
-                      ),
-                    ),
-                  ),  
-                ],
+                ),
               ),
             ),
-          ),
-  );
+    );
+  }
 }
 
-}

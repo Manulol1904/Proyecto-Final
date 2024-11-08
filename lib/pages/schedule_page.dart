@@ -117,124 +117,286 @@ class _ScheduleTutoringPageState extends State<ScheduleTutoringPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agendar Tutoría'),
+        title: const Text(
+          'Agendar Tutoría',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.grey,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildInfoText('Estudiante:', _studentName),
-                            _buildInfoText('Carrera:', _studentCareer),
-                            const SizedBox(height: 20),
-                            _buildInfoText('Tutor:', _tutorName),
-                            _buildInfoText('Área de especialización:', _tutorSubjectArea), // Mostrar el área de especialización
-                          ],
-                        ),
-                      ),
-                    ),
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.background,
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildProfileCards(),
+                      const SizedBox(height: 32),
+                      _buildDateTimeSection(),
+                      const SizedBox(height: 40),
+                      _buildScheduleButton(),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  _buildDateTimeInput('Fecha de Tutoría', _dateController, true),
-                  const SizedBox(height: 20),
-                  _buildDateTimeInput('Hora de Tutoría', _timeController, false),
-                  const SizedBox(height: 30),
-                  Center(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
-                        backgroundColor: Theme.of(context).primaryColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-                        elevation: 0,
-                      ),
-                      onPressed: _scheduleTutoringSession,
-                      child: const Text(
-                        'Agendar Tutoría',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
     );
   }
 
-  Widget _buildInfoText(String title, String info) {
+  Widget _buildProfileCards() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        // Tarjeta del Estudiante
+        _buildProfileCard(
+          title: 'Estudiante',
+          name: _studentName,
+          role: _studentCareer,
+          icon: Icons.school,
+          backgroundColor: const Color(0xFFF5CD84).withOpacity(0.6),
         ),
-        Text(
-          info,
-          style: const TextStyle(fontSize: 16),
+        const SizedBox(height: 16),
+        // Tarjeta del Tutor
+        _buildProfileCard(
+          title: 'Tutor',
+          name: _tutorName,
+          role: _tutorSubjectArea,
+          icon: Icons.psychology,
+          backgroundColor: const Color(0xFFF5CD84).withOpacity(0.6),
         ),
       ],
     );
   }
 
-  Widget _buildDateTimeInput(String label, TextEditingController controller, bool isDate) {
+  Widget _buildProfileCard({
+    required String title,
+    required String name,
+    required String role,
+    required IconData icon,
+    required Color backgroundColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: const Color(0xFF11254B).withOpacity(0.9),
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  name,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  role,
+                  style: TextStyle(
+                    color:Theme.of(context).colorScheme.inversePrimary,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateTimeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        TextField(
-          controller: controller,
-          readOnly: true,
-          decoration: InputDecoration(
-            hintText: isDate ? 'Seleccione la fecha' : 'Seleccione la hora',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide(color: Theme.of(context).primaryColor),
-            ),
-            suffixIcon: Icon(isDate ? Icons.calendar_today : Icons.access_time, color: Theme.of(context).primaryColor),
+        Text(
+          'Detalles de la Sesión',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.inversePrimary,
           ),
-          onTap: () async {
-            if (isDate) {
-              DateTime? pickedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime.now(),
-                lastDate: DateTime(2100),
-              );
-              if (pickedDate != null) {
-                setState(() {
-                  controller.text = "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
-                });
-              }
-            } else {
-              TimeOfDay? pickedTime = await showTimePicker(
-                context: context,
-                initialTime: TimeOfDay.now(),
-              );
-              if (pickedTime != null) {
-                setState(() {
-                  controller.text = pickedTime.format(context);
-                });
-              }
-            }
-          },
+        ),
+        const SizedBox(height: 24),
+        _buildDateTimeInput(
+          'Fecha de Tutoría',
+          _dateController,
+          true,
+          Icons.calendar_today,
+        ),
+        const SizedBox(height: 16),
+        _buildDateTimeInput(
+          'Hora de Tutoría',
+          _timeController,
+          false,
+          Icons.access_time,
         ),
       ],
+    );
+  }
+
+  Widget _buildDateTimeInput(
+    String label,
+    TextEditingController controller,
+    bool isDate,
+    IconData icon,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: controller,
+            readOnly: true,
+            decoration: InputDecoration(
+              hintText: isDate ? 'Seleccione la fecha' : 'Seleccione la hora',
+              hintStyle: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
+              filled: true,
+              fillColor: const Color(0xFFF5CD84).withOpacity(0.6),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              prefixIcon: Icon(
+                icon,
+                color: const Color(0xFF11254B).withOpacity(0.9),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
+            ),
+            onTap: () async {
+              if (isDate) {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime(2100),
+                );
+                if (pickedDate != null) {
+                  setState(() {
+                    controller.text =
+                        "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+                  });
+                }
+              } else {
+                TimeOfDay? pickedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.now(),
+                );
+                if (pickedTime != null) {
+                  setState(() {
+                    controller.text = pickedTime.format(context);
+                  });
+                }
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScheduleButton() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).primaryColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        onPressed: _scheduleTutoringSession,
+        child: const Text(
+          'Agendar Tutoría',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 }
